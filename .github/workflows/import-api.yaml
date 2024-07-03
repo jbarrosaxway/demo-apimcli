@@ -11,7 +11,7 @@ jobs:
         uses: actions/checkout@v3
       - name: run apim cli containe
         run: |
-          docker run --name apim-cli ghcr.io/axway-api-management-plus/apimcli:1.14.2
+          docker run --name apim-cli ghcr.io/axway-api-management-plus/apimcli:1.14.2 sleep 1d
       - name: list containers
         run: |
           docker container ls
