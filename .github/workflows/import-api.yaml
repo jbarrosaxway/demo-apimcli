@@ -10,14 +10,14 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
       - name: ping instance
-        run: nc ${{ secrets.APIM_INSTANCE_IP }} 8075
+        run: nc ${{ vars.APIM_INSTANCE_IP }} 8075
       - name: run apim cli container
         run: |
           docker run --name apim-cli --network host \
           -v ${{ github.workspace }}/api-config.json:/api-config.json \
           -v ${{ github.workspace }}/graphql.json:/graphql.json \
           ghcr.io/axway-api-management-plus/apimcli:1.14.2  apim api import \
-          -apimanagerUrl ${{ secrets.APIM_INSTANCE_IP }} -u ${{ secrets.APIM_INSTANCE_USER }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
+          -apimanagerUrl ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
           -c ~/api-config.json
       - name: check if container was run
         run: |
