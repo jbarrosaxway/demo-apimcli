@@ -12,10 +12,13 @@ jobs:
       - name: run apim cli containe
         run: |
           docker run --name apim-cli ghcr.io/axway-api-management-plus/apimcli:1.14.2
-      - name: copy api-conf files into container
+      - name: list local files
         run: |
-          docker cp /api-config.json apim-cli:/api-config.json
-          docker cp /graphql.json apim-cli:/graphql.json
-      - name: list copied files
-        run: |
-          docker exec apim-cli ls -lrt
+          ls -lrt
+      # - name: copy api-conf files into container
+      #   run: |
+      #     docker cp /api-config.json apim-cli:/api-config.json
+      #     docker cp /graphql.json apim-cli:/graphql.json
+      # - name: list copied files
+      #   run: |
+      #     docker exec apim-cli ls -lrt
