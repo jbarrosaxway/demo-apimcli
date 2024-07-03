@@ -12,8 +12,8 @@ jobs:
       - name: run apim cli containe
         run: |
           docker run --name apim-cli \
-          -v ${{ github.workspace }}/api-config.json:~/api-config.json \
-          -v ${{ github.workspace }}/graphql.json:~/graphql.json \
+          -v ${{ github.workspace }}/api-config.json:/api-config.json \
+          -v ${{ github.workspace }}/graphql.json:/graphql.json \
           ghcr.io/axway-api-management-plus/apimcli:1.14.2 apim api import \
           -apimanagerUrl ${{ secrets.APIM_INSTANCE_IP }} -u ${{ secrets.APIM_INSTANCE_USER }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
           -c ~/api-config.json
