@@ -14,7 +14,7 @@ jobs:
           docker run --name apim-cli \
           -v ${{ github.workspace }}/api-config.json:/api-config.json \
           -v ${{ github.workspace }}/graphql.json:/graphql.json \
-          ghcr.io/axway-api-management-plus/apimcli:1.14.2 apim api import \
+          ghcr.io/axway-api-management-plus/apimcli:1.14.2  $export LOG_LEVEL=debug && apim api import \
           -apimanagerUrl ${{ secrets.APIM_INSTANCE_IP }} -u ${{ secrets.APIM_INSTANCE_USER }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
           -c ~/api-config.json
       - name: check if container was run
