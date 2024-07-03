@@ -10,7 +10,7 @@ jobs:
       - name: checkout
         uses: actions/checkout@v3
       - name: ping instance
-        run: ping ${{ secrets.APIM_INSTANCE_IP }}
+        run: ping -c10 ${{ secrets.APIM_INSTANCE_IP }}
       - name: run apim cli container
         run: |
           docker run --name apim-cli --network host \
