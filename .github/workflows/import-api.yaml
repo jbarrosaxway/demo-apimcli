@@ -1,0 +1,21 @@
+name: import-apiconfig
+on:
+  push:
+    branches:
+      - main
+jobs:
+  import_api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: run apim cli containe
+        run: |
+          docker run --name apim-cli ghcr.io/axway-api-management-plus/apimcli:1.14.2
+      - name: copy api-conf files into container
+        run: |
+          docker cp /api-config.json apim-cli:/api-config.json
+          docker cp /graphql.json apim-cli:/graphql.json
+      - name: list copied files
+        run: |
+          docker exec apim-cli ls -lrt
