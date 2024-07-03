@@ -12,9 +12,16 @@ jobs:
       - name: run apim cli containe
         run: |
           docker run --name apim-cli ghcr.io/axway-api-management-plus/apimcli:1.14.2
-      - name: list local files
+      - name: list containers
         run: |
-          ls -lrt
+          docker container ls
+      - name: Wait for container to be ready
+        run: |
+          until [ "$(docker inspect -f {{.State.Running}} apim-cli)" == "true" ]; do
+            echo "Waiting for container to start...";
+            sleep 1;
+          done
+          echo "Container is running!"
       - name: copy api-conf files into container
         run: |
           docker cp ./api-config.json apim-cli:/api-config.json
