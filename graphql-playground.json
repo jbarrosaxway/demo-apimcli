@@ -1,0 +1,42 @@
+{
+  "description": "graphql playground",
+  "deprecated": false,
+  "apiVersion": "1.0",
+  "swaggerVersion": "1.1",
+  "basePath": "http://ec2-3-236-76-63.compute-1.amazonaws.com:8093",
+  "resourcePath": "/",
+  "models": {},
+  "consumes": [],
+  "produces": [],
+  "name": "graphql",
+  "summary": "",
+  "cors": false,
+  "expired": false,
+  "retirementDate": 0,
+  "retired": false,
+  "tags": {},
+  "apis": [
+    {
+      "path": "/",
+      "operations": [
+        {
+          "id": "668fbbf8-cce1-4535-b4a4-b9ec808d1c57",
+          "httpMethod": "GET",
+          "nickname": "playground",
+          "summary": "",
+          "notes": "",
+          "responseClass": "void",
+          "errorResponses": [],
+          "consumes": [],
+          "produces": [],
+          "tags": {},
+          "cors": false,
+          "parameters": []
+        }
+      ]
+    }
+  ],
+  "createDate": 1719964290872,
+  "accessGrantedDate": 0,
+  "type": "rest"
+}
