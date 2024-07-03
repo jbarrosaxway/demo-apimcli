@@ -11,21 +11,18 @@ jobs:
         uses: actions/checkout@v3
       - name: run apim cli containe
         run: |
-          docker run --name apim-cli ghcr.io/axway-api-management-plus/apimcli:1.14.2 sleep 1d
-      - name: list containers
+          docker run --name apim-cli \
+          -v ${{ github.workspace }}/api-config.json:~/api-config.json \
+          -v ${{ github.workspace }}/graphql.json:~/graphql.json \
+          ghcr.io/axway-api-management-plus/apimcli:1.14.2 apim api import \
+          -apimanagerUrl ${{ secrets.APIM_INSTANCE_IP }} -u ${{ secrets.APIM_INSTANCE_USER }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
+          -c ~/api-config.json
+      - name: check if container was run
         run: |
-          docker container ls
-      - name: Wait for container to be ready
+          docker container ls -a
+      - name: check container logs
         run: |
-          until [ "$(docker inspect -f {{.State.Running}} apim-cli)" == "true" ]; do
-            echo "Waiting for container to start...";
-            sleep 1;
-          done
-          echo "Container is running!"
-      - name: copy api-conf files into container
+          docker logs apim-cli
+      - name: cleanup
         run: |
-          docker cp ./api-config.json apim-cli:/api-config.json
-          docker cp ./graphql.json apim-cli:/graphql.json
-      - name: list copied files
-        run: |
-          docker exec apim-cli ls -lrt
+          docker rm apim-cli
