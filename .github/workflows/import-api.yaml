@@ -15,10 +15,10 @@ jobs:
       - name: list local files
         run: |
           ls -lrt
-      # - name: copy api-conf files into container
-      #   run: |
-      #     docker cp /api-config.json apim-cli:/api-config.json
-      #     docker cp /graphql.json apim-cli:/graphql.json
-      # - name: list copied files
-      #   run: |
-      #     docker exec apim-cli ls -lrt
+      - name: copy api-conf files into container
+        run: |
+          docker cp ./api-config.json apim-cli:/api-config.json
+          docker cp ./graphql.json apim-cli:/graphql.json
+      - name: list copied files
+        run: |
+          docker exec apim-cli ls -lrt
