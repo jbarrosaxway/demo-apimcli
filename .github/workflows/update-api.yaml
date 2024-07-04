@@ -1,0 +1,17 @@
+name: update-apiconfig
+on:
+  push:
+    branches:
+      - main
+jobs:
+  update_api:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout branch
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Get changes
+        run: export "CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})" >> $GITHUB_ENV
+      - name: test
+        run: echo $CHANGES

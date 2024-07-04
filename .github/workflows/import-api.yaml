@@ -1,8 +1,11 @@
 name: import-apiconfig
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      files:
+        description: 'config files need to be created separeted by comma'
+        type: string
+        required: true
 jobs:
   import_api:
     runs-on: ubuntu-latest
