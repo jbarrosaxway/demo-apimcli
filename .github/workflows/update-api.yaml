@@ -6,6 +6,8 @@ on:
 jobs:
   update_api:
     runs-on: ubuntu-latest
+    env:
+      CONFIG_FILES: ""
     steps:
       - name: checkout branch
         uses: actions/checkout@v3
@@ -13,5 +15,33 @@ jobs:
           fetch-depth: 0
       - name: Get changes
         run: echo "CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})" >> $GITHUB_ENV
-      - name: test
-        run: echo $CHANGES
+      - name: get config files to be modified
+        run: |
+          echo "CONFIG_FILES=$(echo \"$CHANGES\" | grep -E '.*-config\.json$' | paste -sd ',')" >> $GITHUB_ENV
+          echo "API_DEFINITION=$(echo \"$CHANGES\" | grep -vE '(-config\.json|\.graphqls)$' | paste -sd ',')" >> $GITHUB_ENV
+          echo "GRAPHQL_SCHEMAS=$(echo \"$CHANGES\" | grep -E '.*\.graphqls$' | paste -sd ',')" >> $GITHUB_ENV
+          if [ -z "${{ env.CONFIG_FILES }}" ]; then
+          echo "configs file to be modified $CONFIG_FILE"
+          elif [ -z "${{ env.API_DEFINITION }}" ]; then
+            IFS=',' read -ra ADDR <<< "${{ env.API_DEFINITION }}"
+            for value in "${ADDR[@]}"; do
+              echo "Processing $value"
+              filename="${value##*/}"
+              # Simulating `grep` command to find files, appending to CONFIG_FILES
+              matches=$(grep -rl "$filename" $PWD/*.json)
+              CONFIG_FILES="$CONFIG_FILES$matches,"
+            done
+            echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
+          else
+            IFS=',' read -ra ADDR <<< "${{ env.GRAPHQL_SCHEMAS }}"
+            for value in "${ADDR[@]}"; do
+              echo "Processing $value"
+              filename="${value##*/}"
+              # Simulating `grep` command to find files, appending to CONFIG_FILES
+              matches=$(grep -rl "$filename" $PWD/*.json)
+              CONFIG_FILES="$CONFIG_FILES$matches,"
+            done
+            echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
+          fi
+      - name: get output files
+        run: echo "$CONFIG_FILES"
