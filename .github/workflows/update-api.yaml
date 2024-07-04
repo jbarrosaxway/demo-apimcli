@@ -62,7 +62,7 @@ jobs:
               -v "${{ github.workspace }}/$file:/$file" \
               -v "${{ github.workspace }}/$apiDefition:/$apiDefition" bvieira123/apim-cli:1.14.4  \
               apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file" |
+              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
             else
               echo "Calling import job..."
               curl \
