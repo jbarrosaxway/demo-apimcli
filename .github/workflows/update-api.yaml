@@ -16,15 +16,24 @@ jobs:
       - name: Get changes
         id: get_changes
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-          CHANGES=$(echo "$CHANGES" | grep -vE '\.ya?ml$')
-          echo $CHANGES
+          # Fetch changes once
+          CHANGES=$(git diff --name-only e4796ed8c22869f94b9b3f8acfdef6bd831e2082 c3b8de365682ab9f9a9186883ae6bca83266e17b | grep -vE '\.ya?ml$')
+          echo "Changes: $CHANGES"
+
+          # Create a comma-separated list of config JSON files
           CONFIG_FILES=$(echo "$CHANGES" | grep -E '.*-config\.json$' | paste -sd ',')
+          echo "Config Files: $CONFIG_FILES"
+
+          # Create a comma-separated list of API definition files
           API_DEFINITION=$(echo "$CHANGES" | grep -vE '(-config\.json|\.ya?ml)$' | paste -sd ',')
-          echo "Filtered changes: $API_DEFINITION"
+          echo "API Definitions: $API_DEFINITION"
+
+          # Remove file extensions
           CONFIG_FILES=$(echo "$CONFIG_FILES" | sed 's/\.[^.]*$//')
           API_DEFINITION=$(echo "$API_DEFINITION" | tr ' ' '\n' | sed 's/\.[^.]*$//' | paste -sd ',' -)
-          echo "After removing extensions: $API_DEFINITION"
+          echo "After removing extensions - API Definitions: $API_DEFINITION"
+
+          # Export to environment
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
           echo "API_DEFINITION=$API_DEFINITION" >> $GITHUB_ENV
 
@@ -44,4 +53,5 @@ jobs:
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
 
       - name: Display Config Files
+
         run: echo "$CONFIG_FILES"
