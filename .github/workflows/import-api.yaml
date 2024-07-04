@@ -2,8 +2,12 @@ name: import-apiconfig
 on:
   workflow_dispatch:
     inputs:
-      files:
-        description: 'config files need to be created separeted by comma'
+      config-file:
+        description: 'config file need to be imported'
+        type: string
+        required: true
+      api-defition:
+        description: 'api definition file need for config file'
         type: string
         required: true
 jobs:
@@ -11,27 +15,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: import graphql definitions
         run: |
-          docker run --name apim-cli -e LOG_LEVEL=DEBUG \
-          -v ${{ github.workspace }}/graphql-config.json:/graphql-config.json \
-          -v ${{ github.workspace }}/schema.graphqls:/schema.graphqls bvieira123/apim-cli:1.14.4  \
+          docker run --name apim-cli \
+          -v ${{ github.workspace }}/${{ inputs.config-file }}:/${{ inputs.config-file }} \
+          -v ${{ github.workspace }}/${{ inputs.api-defition }}:/${{ inputs.api-defition }} bvieira123/apim-cli:1.14.4  \
           apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c /graphql-config.json
-      - name: check if container was run
-        run: |
-          docker container ls -a
+          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c /${{ inputs.config-file }}
       - name: check container logs
         run: |
           docker logs apim-cli
       - name: cleanup
         run: |
           docker rm apim-cli
-      - name: import graphql playground
-        run: |
-          docker run --name apim-cli -e LOG_LEVEL=DEBUG \
-          -v ${{ github.workspace }}/playground-config.json:/playground-config.json \
-          -v ${{ github.workspace }}/graphql-playground.json:/graphql-playground.json bvieira123/apim-cli:1.14.4 \
-          apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c /playground-config.json
