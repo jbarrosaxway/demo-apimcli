@@ -67,6 +67,8 @@ jobs:
             if [[ "$api_exists" == "true" ]]; then
               echo "Update api with apim-cli..."
               docker run --name apim-cli \
+              echo "processing file $file ..."
+              echo "api definition: $API_DEFINITION"
               -v "${{ github.workspace }}/$file:/$file" \
               -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
               apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
