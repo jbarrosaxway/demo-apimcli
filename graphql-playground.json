@@ -22,7 +22,7 @@
         {
           "id": "668fbbf8-cce1-4535-b4a4-b9ec808d1c57",
           "httpMethod": "GET",
-          "nickname": "playground",
+          "nickname": "graphql playground",
           "summary": "",
           "notes": "",
           "responseClass": "void",

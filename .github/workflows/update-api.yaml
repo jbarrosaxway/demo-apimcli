@@ -14,37 +14,19 @@ jobs:
           fetch-depth: 0
 
       - name: Get changes
-        id: get_changes
         run: |
-          # Fetch changes and filter out YAML files
-          CHANGES=$(git diff --name-only e4796ed8c22869f94b9b3f8acfdef6bd831e2082 c3b8de365682ab9f9a9186883ae6bca83266e17b | grep -vE '\.ya?ml$')
-          echo "Filtered Changes (non-YAML): $CHANGES"
-
-          # Check if CHANGES is empty to prevent errors in subsequent commands
-          if [ -z "$CHANGES" ]; then
-            echo "No relevant changes to process."
-            echo "CONFIG_FILES=" >> $GITHUB_ENV
-            echo "API_DEFINITION=" >> $GITHUB_ENV
-            exit 0
-          fi
-
-          # Create a comma-separated list of config JSON files
+          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
+          echo "changes $CHANGES"
+          CHANGES=$(echo "$CHANGES" | grep -vE '\.ya?ml$')
+          echo "Filtered Changes: $CHANGES"
           CONFIG_FILES=$(echo "$CHANGES" | grep -E '.*-config\.json$' | paste -sd ',')
-          echo "Config Files (before removing extensions): $CONFIG_FILES"
-
-          # Create a comma-separated list of API definition files
           API_DEFINITION=$(echo "$CHANGES" | grep -vE '(-config\.json|\.ya?ml)$' | paste -sd ',')
-          echo "API Definitions (before removing extensions): $API_DEFINITION"
-
-          # Remove file extensions, handle potential empty variables
+          echo "Filtered changes: $API_DEFINITION"
           CONFIG_FILES=$(echo "$CONFIG_FILES" | sed 's/\.[^.]*$//')
           API_DEFINITION=$(echo "$API_DEFINITION" | tr ' ' '\n' | sed 's/\.[^.]*$//' | paste -sd ',' -)
-          echo "After removing extensions - API Definitions: $API_DEFINITION"
-
-          # Export to environment
+          echo "After removing extensions: $API_DEFINITION"
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
           echo "API_DEFINITION=$API_DEFINITION" >> $GITHUB_ENV
-        shell: /usr/bin/bash -e {0}
 
       - name: Process API Definitions
         if: env.API_DEFINITION != '' && env.CONFIG_FILES == ''
@@ -62,5 +44,5 @@ jobs:
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
 
       - name: Display Config Files
-
+      
         run: echo "$CONFIG_FILES"
