@@ -72,7 +72,7 @@ jobs:
               -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$file" \
               -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
               apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
+              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file -force"
             else
               echo "Calling import job..."
               echo "Dispatching with config_file: ${file}, API_DEFINITION: ${API_DEFINITION}"
