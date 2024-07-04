@@ -63,7 +63,6 @@ jobs:
             fi
             echo "path content: $path"
             echo "Catch the content of previous check"
-            api_exists=$(echo $api_exists | grep "$path")
             docker rm apim-cli -f
             echo "api exists? $api_exists"
             if [[ "$api_exists" == "true" ]]; then
