@@ -14,14 +14,16 @@ jobs:
           fetch-depth: 0
 
       - name: Get changes
+        id: get_changes
         run: |
-          echo "CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})" >> $GITHUB_ENV
+          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
+          echo "::set-output name=changes::$CHANGES"
 
       - name: Set environment variables for file types
         run: |
-          CONFIG_FILES=$(echo "$CHANGES" | grep -E '.*-config\.json$' | paste -sd ',')
-          API_DEFINITION=$(echo "$CHANGES" | grep -vE '(-config\.json|\.graphqls)$' | paste -sd ',')
-          GRAPHQL_SCHEMAS=$(echo "$CHANGES" | grep -E '.*\.graphqls$' | paste -sd ',')
+          CONFIG_FILES=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -E '.*-config\.json$' | paste -sd ',')
+          API_DEFINITION=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -vE '(-config\.json|\.graphqls)$' | paste -sd ',')
+          GRAPHQL_SCHEMAS=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -E '.*\.graphqls$' | paste -sd ',')
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
           echo "API_DEFINITION=$API_DEFINITION" >> $GITHUB_ENV
           echo "GRAPHQL_SCHEMAS=$GRAPHQL_SCHEMAS" >> $GITHUB_ENV
