@@ -54,7 +54,7 @@ jobs:
             api_exists=$(docker run --name apim-cli \
             bvieira123/apim-cli:1.14.4  \
             apim api get -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -a "$path")
+            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -a "$path" | grep "$path")
             docker rm apim-cli -f
             echo "api exists? $api_exists"
             if [ -z "${api_exists}" ]; then
@@ -62,7 +62,7 @@ jobs:
               -v "${{ github.workspace }}/$file:/$file" \
               -v "${{ github.workspace }}/$apiDefition:/$apiDefition" bvieira123/apim-cli:1.14.4  \
               apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
+              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file" |
             else
               echo "Calling import job..."
               curl \
