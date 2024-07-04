@@ -1,5 +1,4 @@
 type Query {
   helloWorld: String!
   list: [String!]!
-  helloWorld2: String!
 }
