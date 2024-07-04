@@ -1,6 +1,6 @@
 {
   "name" : "graphql",
-  "path" : "/graphql",
+  "path" : "/api",
   "state" : "published",
   "version" : "1.0",
   "organization" : "API Development",

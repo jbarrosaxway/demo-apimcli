@@ -6,7 +6,7 @@ on:
         description: 'config file need to be imported'
         type: string
         required: true
-      api-defition:
+      api-definition:
         description: 'api definition file need for config file'
         type: string
         required: true
@@ -20,7 +20,7 @@ jobs:
         run: |
           docker run --name apim-cli \
           -v ${{ github.workspace }}/${{ inputs.config-file }}:/${{ inputs.config-file }} \
-          -v ${{ github.workspace }}/${{ inputs.api-defition }}:/${{ inputs.api-defition }} bvieira123/apim-cli:1.14.4  \
+          -v ${{ github.workspace }}/${{ inputs.api-definition }}:/${{ inputs.api-definition }} bvieira123/apim-cli:1.14.4  \
           apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
           -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c /${{ inputs.config-file }}
       - name: check container logs

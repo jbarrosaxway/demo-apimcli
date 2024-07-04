@@ -75,6 +75,6 @@ jobs:
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
               "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
-              -d "{\"ref\":\"main\", \"inputs\":{\"config_file\":\"${file}\", \"api_definition\":\"${apiDefinition}\"}}"
+              -d "{\"ref\":\"main\", \"inputs\":{\"config-file\":\"${file}\", \"api-definition\":\"${apiDefinition}\"}}"
             fi
           done
