@@ -17,8 +17,14 @@ jobs:
         id: get_changes
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
-          echo "changes=$CHANGES" >> $GITHUB_STATE
+          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep 'schema.graphqls')
+          if [ -n "$CHANGES" ]; then
+            # Using printf to safely handle special characters and potential multi-line values
+            printf "changes=%s\n" "$CHANGES" >> $GITHUB_OUTPUT
+            printf "changes=%s\n" "$CHANGES" >> $GITHUB_STATE
+          else
+            echo "No relevant changes found."
+          fi
 
       - name: Set environment variables for file types
         run: |
