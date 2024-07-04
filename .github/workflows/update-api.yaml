@@ -12,6 +12,6 @@ jobs:
         with:
           fetch-depth: 0
       - name: Get changes
-        run: export "CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})" >> $GITHUB_ENV
+        run: echo "CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})" >> $GITHUB_ENV
       - name: test
         run: echo $CHANGES
