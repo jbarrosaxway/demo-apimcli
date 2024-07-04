@@ -61,10 +61,7 @@ jobs:
             else
               api_exists="false"
             fi
-            echo "path content: $path"
-            echo "Catch the content of previous check"
             docker rm apim-cli -f
-            echo "api exists? $api_exists"
             if [[ "$api_exists" == "true" ]]; then
               echo "Update api with apim-cli..."
               docker run --name apim-cli \
@@ -74,11 +71,10 @@ jobs:
               -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
             else
               echo "Calling import job..."
-              curl \
-                -X POST \
-                -H "Accept: application/vnd.github.v3+json" \
-                -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
-                "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
-                -d "{\"ref\":\"main\", \"inputs\":{\"config_file\":\"${file}\", \"api_definition\":\"${apiDefinition}\"}}"
+              curl -X POST \
+              -H "Accept: application/vnd.github.v3+json" \
+              -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
+              "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
+              -d "{\"ref\":\"main\", \"inputs\":{\"config_file\":\"${file}\", \"api_definition\":\"${apiDefinition}\"}}"
             fi
           done
