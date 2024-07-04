@@ -23,9 +23,6 @@ jobs:
           -v ${{ github.workspace }}/${{ inputs.api-definition }}:/${{ inputs.api-definition }} bvieira123/apim-cli:1.14.4  \
           apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
           -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c /${{ inputs.config-file }}
-      - name: check container logs
-        run: |
-          docker logs apim-cli
       - name: cleanup
         run: |
           docker rm apim-cli
