@@ -56,13 +56,17 @@ jobs:
             bvieira123/apim-cli:1.14.4  \
             apim api get -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
             -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -a "$path")
-            echo "api_exists content: $api_exists"
+            if [[ "$api_exists" == *"$path"* ]]; then
+              api_exists="true"
+            else
+              api_exists="false"
+            fi
             echo "path content: $path"
             echo "Catch the content of previous check"
             api_exists=$(echo $api_exists | grep "$path")
             docker rm apim-cli -f
             echo "api exists? $api_exists"
-            if [ -z "${api_exists}" ]; then
+            if [[ "$api_exists" == "true" ]]; then
               echo "Update api with apim-cli..."
               docker run --name apim-cli \
               -v "${{ github.workspace }}/$file:/$file" \
