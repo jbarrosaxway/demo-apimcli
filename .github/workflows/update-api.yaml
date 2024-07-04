@@ -18,6 +18,7 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
           CHANGES=$(echo "$CHANGES" | grep -vE '\.ya?ml$')
+          echo $CHANGES
           echo "changes=$CHANGES" >> $GITHUB_OUTPUT
           echo "changes=$CHANGES" >> $GITHUB_STATE
           CONFIG_FILES=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -E '.*-config\.json$' | paste -sd ',')
