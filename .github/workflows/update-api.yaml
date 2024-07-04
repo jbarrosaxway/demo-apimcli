@@ -36,7 +36,10 @@ jobs:
             echo "Processing $value"
             filename="${value##*/}"
             matches=$(grep -rl "$filename" $PWD/*.json)
-            CONFIG_FILES="$CONFIG_FILES,$matches"
+            if [-z "${CONFIG_FILES}" ]
+              CONFIG_FILES="$matches"
+            else
+              CONFIG_FILES="$CONFIG_FILES,$matches"
           done
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
 
