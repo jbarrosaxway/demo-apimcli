@@ -30,7 +30,7 @@ jobs:
           echo "GRAPHQL_SCHEMAS=$GRAPHQL_SCHEMAS" >> $GITHUB_ENV
 
       - name: Process API Definitions
-        if: env.API_DEFINITION != ''
+        if: env.API_DEFINITION != '' && env.CONFIG_FILES == ''
         run: |
           IFS=',' read -ra ADDR <<< "$API_DEFINITION"
           for value in "${ADDR[@]}"; do
@@ -42,7 +42,7 @@ jobs:
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
 
       - name: Process GraphQL Schemas
-        if: env.GRAPHQL_SCHEMAS != ''
+        if: env.GRAPHQL_SCHEMAS != '' && env.CONFIG_FILES == ''
         run: |
           IFS=',' read -ra ADDR <<< "$GRAPHQL_SCHEMAS"
           for value in "${ADDR[@]}"; do
