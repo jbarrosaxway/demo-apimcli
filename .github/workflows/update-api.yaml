@@ -71,10 +71,11 @@ jobs:
               -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
             else
               echo "Calling import job..."
+              echo "Dispatching with config_file: ${file}, api_definition: ${apiDefinition}"
               curl -X POST \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
               "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
-              -d "{\"ref\":\"main\", \"inputs\":{\"config-file\":\"${file}\", \"api-definition\":\"${apiDefinition}\"}}"
+              -d "{\"ref\":\"main\", \"inputs\":{\"config_file\":\"${file}\", \"api_definition\":\"${apiDefinition}\"}}"
             fi
           done
