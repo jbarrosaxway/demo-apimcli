@@ -49,7 +49,9 @@ jobs:
         run: |
           IFS=',' read -ra ADDR <<< "$CONFIG_FILES"
           for file in "${ADDR[@]}"; do
-            apiDefition=$(jq -r '.apiSpecification.resource' "$file")
+            echo "getting api definition..."
+            API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
+            echo "api definition: $API_DEFINITION"
             path=$(jq -r '.path' "$file")
             echo "Verifing if the api exists..."
             api_exists=$(docker run --name apim-cli \
@@ -66,16 +68,16 @@ jobs:
               echo "Update api with apim-cli..."
               docker run --name apim-cli \
               -v "${{ github.workspace }}/$file:/$file" \
-              -v "${{ github.workspace }}/$apiDefition:/$apiDefition" bvieira123/apim-cli:1.14.4  \
+              -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
               apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
               -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
             else
               echo "Calling import job..."
-              echo "Dispatching with config_file: ${file}, api_definition: ${apiDefinition}"
+              echo "Dispatching with config_file: ${file}, API_DEFINITION: ${API_DEFINITION}"
               curl -X POST \
               -H "Accept: application/vnd.github.v3+json" \
               -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
               "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
-              -d "{\"ref\":\"main\", \"inputs\":{\"config_file\":\"${file}\", \"api_definition\":\"${apiDefinition}\"}}"
+              -d "{\"ref\":\"main\", \"inputs\":{\"config-file\":\"${file}\", \"api-definition\":\"${API_DEFINITION}\"}}"
             fi
           done
