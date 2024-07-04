@@ -19,11 +19,9 @@ jobs:
           CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
           CHANGES=$(echo "$CHANGES" | grep -vE '\.ya?ml$')
           echo $CHANGES
-          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
-          echo "changes=$CHANGES" >> $GITHUB_STATE
           CONFIG_FILES=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -E '.*-config\.json$' | paste -sd ',')
           API_DEFINITION=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -vE '(-config\.json|\.graphqls|\.yaml|\.yml)$' | paste -sd ',')
-          GRAPHQL_SCHEMAS=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -E '.*\.graphqls$' | paste -sd ',')
+          GRAPHQL_SCHEMAS=$(echo "${{ steps.get_changes.outputs.changes }}" | grep -E '*\.graphqls$' | paste -sd ',')
           CONFIG_FILES=$(echo "$CONFIG_FILES" | sed 's/\.[^.]*$//')
           API_DEFINITION=$(echo "$API_DEFINITION" | sed 's/\.[^.]*$//')
           GRAPHQL_SCHEMAS=$(echo "$GRAPHQL_SCHEMAS" | sed 's/\.[^.]*$//')
