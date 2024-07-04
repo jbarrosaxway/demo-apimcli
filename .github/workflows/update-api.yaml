@@ -29,6 +29,9 @@ jobs:
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
           echo "API_DEFINITION=$API_DEFINITION" >> $GITHUB_ENV
           echo "GRAPHQL_SCHEMAS=$GRAPHQL_SCHEMAS" >> $GITHUB_ENV
+          echo $GRAPHQL_SCHEMAS
+          echo $API_DEFINITION
+          echo $CONFIG_FILES
 
       - name: Process API Definitions
         if: env.API_DEFINITION != '' && env.CONFIG_FILES == ''
