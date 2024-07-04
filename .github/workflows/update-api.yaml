@@ -69,7 +69,7 @@ jobs:
               echo "processing file $file ..."
               echo "api definition: $API_DEFINITION"
               docker run --name apim-cli \
-              -v "${{ github.workspace }}/$file:/$file" \
+              -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$file" \
               -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
               apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
               -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
