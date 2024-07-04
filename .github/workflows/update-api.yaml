@@ -23,8 +23,6 @@ jobs:
           API_DEFINITION=$(echo "$CHANGES" | grep -vE '(-config\.json|\.ya?ml)$' | paste -sd ',')
           echo "Filtered changes: $API_DEFINITION"
           CONFIG_FILES=$(echo "$CONFIG_FILES" | sed 's/\.[^.]*$//')
-          API_DEFINITION=$(echo "$API_DEFINITION" | tr ' ' '\n' | sed 's/\.[^.]*$//' | paste -sd ',' -)
-          echo "After removing extensions: $API_DEFINITION"
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
           echo "API_DEFINITION=$API_DEFINITION" >> $GITHUB_ENV
 
@@ -36,11 +34,19 @@ jobs:
             echo "Processing $value"
             filename="${value##*/}"
             matches=$(grep -rl "$filename" $PWD/*.json)
-            if [-z "${CONFIG_FILES}" ]
+
+            # Proper syntax for checking if variable is empty
+            if [ -z "${CONFIG_FILES}" ]; then
               CONFIG_FILES="$matches"
             else
-              CONFIG_FILES="$CONFIG_FILES,$matches"
+              # Ensure not to prepend a comma if no matches found
+              if [ -n "$matches" ]; then
+                CONFIG_FILES="${CONFIG_FILES},$matches"
+              fi
+            fi
           done
+          # Check and log final value of CONFIG_FILES
+          echo "Final CONFIG_FILES: $CONFIG_FILES"
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
 
       - name: Display Config Files
