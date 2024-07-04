@@ -56,7 +56,7 @@ jobs:
             bvieira123/apim-cli:1.14.4  \
             apim api get -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
             -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -a "$path")
-            docker rm apim-cli
+            docker rm apim-cli -f
             if [ -z "${api_exists}" ]; then
               docker run --name apim-cli \
               -v "${{ github.workspace }}/$file:/$file" \
@@ -70,3 +70,5 @@ jobs:
                 -H "Authorization: token ${TOKEN_GITHUB}" \
                 "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
                 -d "{\"ref\":\"main\", \"inputs\":{\"config_file\":\"${file}\", \"api_definition\":\"${apiDefinition}\"}}"
+            fi
+          done
