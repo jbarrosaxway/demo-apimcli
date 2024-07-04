@@ -51,6 +51,7 @@ jobs:
           for file in "${ADDR[@]}"; do
             apiDefition=$(jq -r '.apiSpecification.resource' "$file")
             path=$(jq -r '.path' "$file")
+            echo "Verifing if the api exists..."
             api_exists=$(docker run --name apim-cli \
             bvieira123/apim-cli:1.14.4  \
             apim api get -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
@@ -58,6 +59,7 @@ jobs:
             docker rm apim-cli -f
             echo "api exists? $api_exists"
             if [ -z "${api_exists}" ]; then
+              echo "Update api with apim-cli..."
               docker run --name apim-cli \
               -v "${{ github.workspace }}/$file:/$file" \
               -v "${{ github.workspace }}/$apiDefition:/$apiDefition" bvieira123/apim-cli:1.14.4  \
