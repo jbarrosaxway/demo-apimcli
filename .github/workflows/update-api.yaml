@@ -7,11 +7,17 @@ on:
 jobs:
   update_api:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.define_matrix_config_files.outputs.CONFIG_FILES }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
       - name: Get changes
         run: |
@@ -45,7 +51,14 @@ jobs:
           echo "Config file need to be updated: $CONFIG_FILES"
           echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
 
+      ## Add step to verify config files need to be imported and push to an comma separate list.
+      - name: Get config files list
+        run: |
+          echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_OUTPUT
+
+        id: define_matrix_config_files
       - name: Update api's or trigger import action
+        if: env.CONFIG_FILES != ''
         run: |
           IFS=',' read -ra ADDR <<< "$CONFIG_FILES"
           for file in "${ADDR[@]}"; do
@@ -83,3 +96,11 @@ jobs:
               -d "{\"ref\":\"main\", \"inputs\":{\"config-file\":\"${file}\", \"api-definition\":\"${API_DEFINITION}\"}}"
             fi
           done
+  # trigger_import:
+  #   needs: update_api
+  #   uses: ./.github/workflows/import-api.yaml
+  #   strategy:
+  #     matrix:
+  #       config-file: ${{fromJson(needs.update_api.outputs.matrix)}}
+  #   with:
+  #     config-file: ${{ matrix.config-file }}

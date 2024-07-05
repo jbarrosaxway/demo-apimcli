@@ -1,13 +1,15 @@
 name: import-apiconfig
 on:
+  workflow_call: 
+    inputs:
+      config-file:
+        description: 'config file need to be imported comma separete'
+        type: string
+        required: true
   workflow_dispatch:
     inputs:
       config-file:
-        description: 'config file need to be imported'
-        type: string
-        required: true
-      api-definition:
-        description: 'api definition file need for config file'
+        description: 'config file need to be imported comma separete'
         type: string
         required: true
 jobs:
@@ -16,6 +18,9 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: get api definitions
+        run: |
+          echo "Should get all api definitions from files"
       - name: import graphql definitions
         run: |
           docker run --name apim-cli \
