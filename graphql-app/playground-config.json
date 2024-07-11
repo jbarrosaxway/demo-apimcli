@@ -1,6 +1,6 @@
 {
     "name" : "graphql playground",
-    "path" : "/playground",
+    "path" : "/graphiql",
     "state" : "published",
     "version" : "1.0",
     "organization" : "API Development",
