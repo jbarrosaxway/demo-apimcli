@@ -1,5 +1,8 @@
 name: Update API Config
 on:
+  pull_request: 
+    branches: 
+      - main
   push:
     branches:
       - main
@@ -8,7 +11,7 @@ jobs:
   update_api:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.define_matrix_config_files.outputs.CONFIG_FILES }}
+      matrix: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -18,89 +21,53 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.x'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r ./requirements.txt
 
       - name: Get changes
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }})
-          CHANGES=$(echo "$CHANGES" | grep -vE '\.ya?ml$')
-          CONFIG_FILES=$(echo "$CHANGES" | grep -E '.*-config\.json$' | paste -sd ',')
-          API_DEFINITION=$(echo "$CHANGES" | grep -vE '(-config\.json|\.ya?ml)$' | paste -sd ',')
-          echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
-          echo "API_DEFINITION=$API_DEFINITION" >> $GITHUB_ENV
+          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -v '^.github/workflows/' | grep '\.py$' | paste -sd ',')
+          echo "CHANGES=$CHANGES" >> $GITHUB_ENV
 
-      - name: Process API Definitions
-        if: env.API_DEFINITION != '' && env.CONFIG_FILES == ''
-        run: |
-          IFS=',' read -ra ADDR <<< "$API_DEFINITION"
-          for file in "${ADDR[@]}"; do
-            echo "Processing $file"
-            filename="${file##*/}"
-            matches=$(grep -rl "$filename" $PWD/*.json)
-
-            # Proper syntax for checking if variable is empty
-            if [ -z "${CONFIG_FILES}" ]; then
-              CONFIG_FILES="$matches"
-            else
-              # Ensure not to prepend a comma if no matches found
-              if [ -n "$matches" ]; then
-                CONFIG_FILES="${CONFIG_FILES},$matches"
-              fi
-            fi
-          done
-          # Check and log final value of CONFIG_FILES
-          echo "Config file need to be updated: $CONFIG_FILES"
-          echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_ENV
-
-      ## Add step to verify config files need to be imported and push to an comma separate list.
-      - name: Get config files list
-        run: |
-          echo "CONFIG_FILES=$CONFIG_FILES" >> $GITHUB_OUTPUT
+      - name: Get Config Files
+        env:
+          CHANGES: ${{ env.CHANGES }}
+        run: python ./get-config-files.py
 
         id: define_matrix_config_files
+      - name: Check if config file is new or is an update
+        env:
+          CONFIG_FILES: ${{ env.CONFIG_FILES }}
+          APIM_INSTANCE_IP: ${{ vars.APIM_INSTANCE_IP }}
+          APIM_INSTANCE_USER: ${{ vars.APIM_INSTANCE_USER }}
+          APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
+        run: python ./check-if-config-file-exists.py
+
       - name: Update api's or trigger import action
-        if: env.CONFIG_FILES != ''
+        if: env.UPDATE_CONFIG_FILES != ''
         run: |
-          IFS=',' read -ra ADDR <<< "$CONFIG_FILES"
-          for file in "${ADDR[@]}"; do
+          files=$(echo "${{ env.UPDATE_CONFIG_FILES }}" | jq -r '.[]')
+          for file in $files; do
             echo "getting api definition..."
             API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
             echo "api definition: $API_DEFINITION"
             path=$(jq -r '.path' "$file")
-            echo "Verifing if the api exists..."
-            api_exists=$(docker run --name apim-cli \
-            bvieira123/apim-cli:1.14.4  \
-            apim api get -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -a "$path")
-            if [[ "$api_exists" == *"$path"* ]]; then
-              api_exists="true"
-            else
-              api_exists="false"
-            fi
+            echo "Update api with apim-cli with config file: $file"
+            docker run --name apim-cli \
+            -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$file" \
+            -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
+            apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
+            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file" -force
             docker rm apim-cli -f
-            if [[ "$api_exists" == "true" ]]; then
-              echo "Update api with apim-cli..."
-              echo "processing file $file ..."
-              echo "api definition: $API_DEFINITION"
-              docker run --name apim-cli \
-              -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$file" \
-              -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
-              apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-              -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file" -force
-            else
-              echo "Calling import job..."
-              echo "Dispatching with config_file: ${file}, API_DEFINITION: ${API_DEFINITION}"
-              curl -X POST \
-              -H "Accept: application/vnd.github.v3+json" \
-              -H "Authorization: token ${{ secrets.TOKEN_GITHUB }}" \
-              "https://api.github.com/repos/bvieira123/github-actions-poc/actions/workflows/import-api.yaml/dispatches" \
-              -d "{\"ref\":\"main\", \"inputs\":{\"config-file\":\"${file}\", \"api-definition\":\"${API_DEFINITION}\"}}"
-            fi
           done
-  # trigger_import:
-  #   needs: update_api
-  #   uses: ./.github/workflows/import-api.yaml
-  #   strategy:
-  #     matrix:
-  #       config-file: ${{fromJson(needs.update_api.outputs.matrix)}}
-  #   with:
-  #     config-file: ${{ matrix.config-file }}
+          echo "All file updated..."
+  trigger_import:
+    needs: update_api
+    uses: ./.github/workflows/import-api.yaml
+    strategy:
+      matrix:
+        IMPORT_CONFIG_FILES: ${{fromJson(needs.update_api.outputs.matrix)}}
+    with:
+      config-file: ${{ matrix.IMPORT_CONFIG_FILES }}

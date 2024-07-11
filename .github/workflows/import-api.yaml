@@ -18,16 +18,23 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: get api definitions
-        run: |
-          echo "Should get all api definitions from files"
       - name: import graphql definitions
         run: |
-          docker run --name apim-cli \
-          -v ${{ github.workspace }}/${{ inputs.config-file }}:/${{ inputs.config-file }} \
-          -v ${{ github.workspace }}/${{ inputs.api-definition }}:/${{ inputs.api-definition }} bvieira123/apim-cli:1.14.4  \
-          apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c /${{ inputs.config-file }}
+          files=$(echo "${{ inputs.config-file }}" | jq -r '.[]')
+          for file in $files; do
+            echo "getting api definition..."
+            API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
+            echo "api definition: $API_DEFINITION"
+            path=$(jq -r '.path' "$file")
+            echo "Update api with apim-cli with config file: $file"
+            docker run --name apim-cli \
+            -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$file" \
+            -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
+            apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
+            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
+            docker rm apim-cli -f
+          done
+          echo "All file updated..."
       - name: cleanup
         run: |
           docker rm apim-cli
