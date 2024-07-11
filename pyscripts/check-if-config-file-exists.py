@@ -35,4 +35,4 @@ for file in CONFIG_FILES:
 print(f"Config files to be imported: {IMPORT_CONFIG_FILES}")
 print(f"Config files to be updated: {UPDATE_CONFIG_FILES}")
 export_env('UPDATE_CONFIG_FILES', UPDATE_CONFIG_FILES)
-export_env_and_output('MATRIX', json.dumps(IMPORT_CONFIG_FILES))
+export_env_and_output('IMPORT_CONFIG_FILES', json.dumps(IMPORT_CONFIG_FILES))
