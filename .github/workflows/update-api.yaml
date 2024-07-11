@@ -37,7 +37,7 @@ jobs:
       - name: Get Config Files
         env:
           CHANGES: ${{ env.CHANGES }}
-        run: python ./get-config-files.py
+        run: python ./pyscripts/get-config-files.py
 
         id: define_matrix_config_files
       - name: Check if config file is new or is an update
@@ -46,7 +46,7 @@ jobs:
           APIM_INSTANCE_IP: ${{ vars.APIM_INSTANCE_IP }}
           APIM_INSTANCE_USER: ${{ vars.APIM_INSTANCE_USER }}
           APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
-        run: python ./check-if-config-file-exists.py
+        run: python ./pyscripts/check-if-config-file-exists.py
 
       - name: Update api's
         if: env.UPDATE_CONFIG_FILES != ''

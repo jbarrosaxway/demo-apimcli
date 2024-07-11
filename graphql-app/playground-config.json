@@ -1,5 +1,5 @@
 {
-    "name" : "graphql playground handler",
+    "name" : "graphql playground",
     "path" : "/graphiql",
     "state" : "published",
     "version" : "1.0",
