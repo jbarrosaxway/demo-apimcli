@@ -50,7 +50,9 @@ jobs:
 
       - name: Print outputs
         run: |
-          echo "OUTPUTS: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}"
+          echo "OUTPUTS: $ONFIG_FILES"
+        env: 
+          ONFIG_FILES: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}
 
       - name: Update api's
         if: env.UPDATE_CONFIG_FILES != ''
