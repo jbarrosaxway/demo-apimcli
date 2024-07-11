@@ -1,7 +1,7 @@
 import json, os
 import jsonpath_ng as jsonpath
 
-file_list = os.environ["CHANGE"].split(',')
+file_list = os.environ["CHANGES"].split(',')
 conf_files_list = []
 
 def add_in_conf_files_list(file):

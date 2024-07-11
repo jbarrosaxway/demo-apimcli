@@ -30,6 +30,7 @@ jobs:
         run: |
           CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -v '^.github/workflows/' | grep '\.py$' | paste -sd ',')
           echo "CHANGES=$CHANGES" >> $GITHUB_ENV
+          echo "CHANGES: $CHANGES"
 
       - name: Get Config Files
         env:
