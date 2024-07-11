@@ -3,13 +3,13 @@ on:
   workflow_call: 
     inputs:
       config-file:
-        description: 'config file need to be imported comma separete'
+        description: 'config file need to be imported'
         type: string
         required: true
   workflow_dispatch:
     inputs:
       config-file:
-        description: 'config file need to be imported comma separete'
+        description: 'config file need to be imported'
         type: string
         required: true
 jobs:
@@ -20,21 +20,21 @@ jobs:
         uses: actions/checkout@v4
       - name: import graphql definitions
         run: |
-          files=$(echo "${{ inputs.config-file }}" | jq -r '.[]')
-          for file in $files; do
-            echo "getting api definition..."
-            API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
-            echo "api definition: $API_DEFINITION"
-            path=$(jq -r '.path' "$file")
-            echo "Update api with apim-cli with config file: $file"
-            docker run --name apim-cli \
-            -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$file" \
-            -v "${{ github.workspace }}/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
-            apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
-            docker rm apim-cli -f
-          done
-          echo "All file updated..."
+          echo "getting api definition..."
+          directory=$(dirname ${{ inputs.config-file }})
+          filename=$(basename ${{ inputs.config-file }})
+          API_DEFINITION=$(jq -r '.apiSpecification.resource' ${{ inputs.config-file }})
+          api-definition-directory=$(dirname "$API_DEFINITION")
+          api-definition-filename=$(dirname "$API_DEFINITION")
+          echo "api definition: $API_DEFINITION"
+          path=$(jq -r '.path' ${{ inputs.config-file }})
+          echo "Update api with apim-cli with config file: $file"
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/${{ inputs.config-file }}:/$filename" \
+          -v "${{ github.workspace }}$api-definition-directory/$api-definition-filename:/$api-definition-filename" bvieira123/apim-cli:1.14.4  \
+          apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
+          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$file"
+          docker rm apim-cli -f
       - name: cleanup
         run: |
           docker rm apim-cli
