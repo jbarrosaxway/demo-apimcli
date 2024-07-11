@@ -1,5 +1,5 @@
 {
-    "name" : "http spring app",
+    "name" : "Sample http spring app",
     "path" : "/api",
     "state" : "published",
     "version" : "1.0",

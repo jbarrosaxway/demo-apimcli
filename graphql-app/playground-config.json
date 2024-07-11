@@ -1,5 +1,5 @@
 {
-    "name" : "graphql playground",
+    "name" : "Sample graphql playground",
     "path" : "/playground",
     "state" : "published",
     "version" : "1.0",
