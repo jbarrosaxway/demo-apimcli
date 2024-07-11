@@ -39,8 +39,8 @@ jobs:
           CHANGES: ${{ env.CHANGES }}
         run: python ./pyscripts/get-config-files.py
 
-        id: define_matrix_config_files
       - name: Check if config file is new or is an update
+        id: define_matrix_config_files
         env:
           CONFIG_FILES: ${{ env.CONFIG_FILES }}
           APIM_INSTANCE_IP: ${{ vars.APIM_INSTANCE_IP }}
