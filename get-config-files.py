@@ -5,7 +5,7 @@ file_list = os.environ["CHANGES"].split(',')
 conf_files_list = []
 
 def add_in_conf_files_list(file):
-    print(f"Checking if the {file} are not in the config files list")
+    print(f"Checking if the {file} are not in the config files list...")
     if file not in file_list:
         conf_files_list.append(config_file)
 

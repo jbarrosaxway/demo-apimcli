@@ -28,7 +28,7 @@ jobs:
 
       - name: Get changes
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -v '^.github/workflows/' | grep '\.py$' | paste -sd ',')
+          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -v '^.github/workflows/' | grep -v '\.py$' | paste -sd ',')
           echo "CHANGES=$CHANGES" >> $GITHUB_ENV
           echo "CHANGES: $CHANGES"
 
