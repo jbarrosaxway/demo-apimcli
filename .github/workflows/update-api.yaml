@@ -13,7 +13,7 @@ jobs:
   update_api:
     runs-on: ubuntu-latest
     outputs:
-      matrix: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}
+      IMPORT_CONFIG_FILES: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}
     steps:
       - name: Checkout branch
         uses: actions/checkout@v4
@@ -48,6 +48,10 @@ jobs:
           APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
         run: python ./pyscripts/check-if-config-file-exists.py
 
+      - name: Print outputs
+        run: |
+          echo "OUTPUTS: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}"
+
       - name: Update api's
         if: env.UPDATE_CONFIG_FILES != ''
         run: |
@@ -70,7 +74,7 @@ jobs:
     needs: update_api
     strategy:
       matrix:
-        IMPORT_CONFIG_FILES: ${{fromJson(needs.update_api.outputs.matrix)}}
+        IMPORT_CONFIG_FILE: ${{fromJson(needs.update_api.outputs.IMPORT_CONFIG_FILES)}}
     uses: ./.github/workflows/import-api.yaml
     with:
-      config-file: ${{ matrix.IMPORT_CONFIG_FILES }}
+      config-file: ${{ matrix.IMPORT_CONFIG_FILE }}
