@@ -10,11 +10,13 @@ IMPORT_CONFIG_FILES = []
 docker_client = docker.from_env()
 
 def export_env(key, value):
+    print(f"Current value in env export: {key}:{value}")
     # Define a variável de ambiente no GITHUB_ENV para uso em steps subsequentes
     with open(os.environ['GITHUB_ENV'], 'a', encoding='utf-8') as env_file:
         env_file.write(f"{key}={value}\n")
 
 def export_env_and_output(key, value):
+    print(f"Current value output export: {key}:{value}")
     export_env(key, value)
     # Escreve a saída no GITHUB_OUTPUT para uso no mesmo step
     with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output_file:
