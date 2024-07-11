@@ -5,6 +5,7 @@ file_list = os.environ["CHANGES"].split(',')
 conf_files_list = []
 
 def add_in_conf_files_list(file):
+    print(f"Checking if the {file} are not in the config files list")
     if file not in file_list:
         conf_files_list.append(config_file)
 
@@ -16,6 +17,7 @@ def export_env(key, value):
 def get_config_file_of_api_definition_file(file_path, file_name):
     try:
         with open(file_path, 'r') as file:
+            print("Processing config file to api definition...")
             data = json.load(file)
             name_query = jsonpath.parse("$.apiSpecification.resource")
             value = name_query.find(data)
@@ -34,6 +36,7 @@ def process_api_defition(file_path):
     directory, file_name = os.path.split(file_path)
     for root, _, files in os.walk(directory):
         for file in files:
+            print(f"Getting correctly config file for api defition file {file_name}")
             if file.endswith('-config.json'):
                 file_path = os.path.join(root, file)
                 config_file_path = get_config_file_of_api_definition_file(file_path, file_name)

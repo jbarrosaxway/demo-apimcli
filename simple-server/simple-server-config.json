@@ -1,6 +1,6 @@
 {
     "name" : "simple-http",
-    "path" : "/simple-api",
+    "path" : "/simple",
     "state" : "published",
     "version" : "1.0",
     "organization" : "API Development",

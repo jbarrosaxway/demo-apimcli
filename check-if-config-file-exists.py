@@ -1,7 +1,7 @@
 import os, json, docker
 import jsonpath_ng as jsonpath
 
-CONFIG_FILE = os.environ["CONFIG_FILE"]
+CONFIG_FILE = os.environ["CONFIG_FILES"]
 CONFIG_FILES = json.loads(CONFIG_FILE)
 APIM_IP = os.environ["APIM_INSTANCE_IP"]
 APIM_USER = os.environ["APIM_INSTANCE_USER"]
@@ -25,6 +25,7 @@ def get_api_path(file_path):
     print(f"{file_path}")
     try:
         with open(file_path, 'r') as file:
+            print("Processing config file to get path...")
             file_data = json.load(file)
             name_query = jsonpath.parse("$.path")
             json_field = name_query.find(file_data)
