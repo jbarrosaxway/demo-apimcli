@@ -1,5 +1,5 @@
 {
-  "name" : "graphql requets handler",
+  "name" : "graphql",
   "path" : "/graphql",
   "state" : "published",
   "version" : "1.0",

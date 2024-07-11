@@ -6,7 +6,9 @@ on:
   push:
     branches:
       - main
-
+env:
+  GITHUB_ENV: $GITHUB_ENV
+  GITHUB_OUTPUT: $GITHUB_OUTPUT
 jobs:
   update_api:
     runs-on: ubuntu-latest
@@ -28,7 +30,7 @@ jobs:
 
       - name: Get changes
         run: |
-          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -v '^.github/workflows/' | grep -v '\.py$' | paste -sd ',')
+          CHANGES=$(git diff --name-only ${{ github.event.before }} ${{ github.event.after }} | grep -v '^.github/workflows/' | grep -v '^pyscripts/' | paste -sd ',')
           echo "CHANGES=$CHANGES" >> $GITHUB_ENV
           echo "CHANGES: $CHANGES"
 
@@ -46,7 +48,7 @@ jobs:
           APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
         run: python ./check-if-config-file-exists.py
 
-      - name: Update api's or trigger import action
+      - name: Update api's
         if: env.UPDATE_CONFIG_FILES != ''
         run: |
           files=$(echo "${{ env.UPDATE_CONFIG_FILES }}" | jq -r '.[]')
@@ -67,8 +69,8 @@ jobs:
   trigger_import:
     needs: update_api
     uses: ./.github/workflows/import-api.yaml
+    with:
+      config-file: ${{ matrix }}
     strategy:
       matrix:
         IMPORT_CONFIG_FILES: ${{fromJson(needs.update_api.outputs.matrix)}}
-    with:
-      config-file: ${{ matrix.IMPORT_CONFIG_FILES }}

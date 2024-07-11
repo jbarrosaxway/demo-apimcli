@@ -1,6 +1,6 @@
 {
     "name" : "simple http spring boot app",
-    "path" : "/simple",
+    "path" : "/api",
     "state" : "published",
     "version" : "1.0",
     "organization" : "API Development",

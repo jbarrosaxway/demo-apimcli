@@ -1,5 +1,4 @@
-import os, json, docker
-import jsonpath_ng as jsonpath
+import os, json, docker, utils
 
 CONFIG_FILE = os.environ["CONFIG_FILES"]
 CONFIG_FILES = json.loads(CONFIG_FILE)
@@ -21,32 +20,19 @@ def export_env_and_output(key, value):
     with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as output_file:
         output_file.write(f"{key}={value}\n")
 
-def get_api_path(file_path):
-    print(f"{file_path}")
-    try:
-        with open(file_path, 'r') as file:
-            print("Processing config file to get path...")
-            file_data = json.load(file)
-            name_query = jsonpath.parse("$.path")
-            json_field = name_query.find(file_data)
-            return json_field[0].value
-    except FileNotFoundError:
-        print(f"File {file_path} not found.")
-    except json.JSONDecodeError:
-        print(f"Error decoding JSON from file {file_path}.")
-    except Exception as e:
-        print(f"An error occurred while processing the file {file_path}: {e}")
-
 for file in CONFIG_FILES:
-    path = get_api_path(file)
+    path = utils.get_field_by_json_path(file, "$.path")[0].value
     container_command = f"apim api get -h {APIM_IP} -u {APIM_USER} -port 8075 -p {APIM_PASSWORD} -a {path}"
-    print("Running api search in apim-cli...")
+    print(f"Running api search in apim-cli for file {file}")
     byte_result = docker_client.containers.run("bvieira123/apim-cli:1.14.4", container_command, stdout=True, stderr=True, remove=True)
     result = byte_result.decode('utf-8')
     if path in result:
         UPDATE_CONFIG_FILES.append(file)
     else:
+        print(f"API config file is new {file}")
         IMPORT_CONFIG_FILES.append(file)
 
+print(f"Config files to be imported: {IMPORT_CONFIG_FILES}")
+print(f"Config files to be updated: {UPDATE_CONFIG_FILES}")
 export_env('UPDATE_CONFIG_FILES', UPDATE_CONFIG_FILES)
 export_env_and_output('MATRIX', json.dumps(IMPORT_CONFIG_FILES))
