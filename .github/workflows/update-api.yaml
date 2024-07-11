@@ -68,9 +68,9 @@ jobs:
           echo "All file updated..."
   trigger_import:
     needs: update_api
-    uses: ./.github/workflows/import-api.yaml
-    with:
-      config-file: ${{ matrix.IMPORT_CONFIG_FILES }}
     strategy:
       matrix:
         IMPORT_CONFIG_FILES: ${{fromJson(needs.update_api.outputs.matrix)}}
+    uses: ./.github/workflows/import-api.yaml
+    with:
+      config-file: ${{ matrix.IMPORT_CONFIG_FILES }}
