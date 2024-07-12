@@ -26,6 +26,7 @@ def process_api_defition(file_path):
           print(f"Getting correctly config file for api defition file {file_name}")
           if file.endswith('-config.json'):
               file_path = os.path.join(root, file)
+              print(f"Checking config file {file_path}")
               config_file_path = utils.get_field_by_json_path(file_path, "$.apiSpecification.resource")[0].value
               if config_file_path != "":
                   return config_file_path
