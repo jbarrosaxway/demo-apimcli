@@ -73,3 +73,4 @@ jobs:
     uses: ./.github/workflows/import-api.yaml
     with:
       config-file: ${{ matrix.IMPORT_CONFIG_FILE }}
+    secrets: inherit
