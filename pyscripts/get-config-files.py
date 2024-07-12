@@ -21,6 +21,7 @@ def export_env(key, value):
 
 def process_api_defition(file_path):
   directory, file_name = os.path.split(file_path)
+  print(f"Current directory")
   for root, _, files in os.walk(directory):
       for file in files:
           print(f"Getting correctly config file for api defition file {file_name}")
@@ -30,7 +31,7 @@ def process_api_defition(file_path):
               found_api_definition_file = utils.get_field_by_json_path(file_path, "$.apiSpecification.resource")[0].value
               print(f"Found path: {found_api_definition_file}")
               if file_name in found_api_definition_file:
-                  return file
+                  return f"{directory}/{file}"
 
 
 for file in file_list:
