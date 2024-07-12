@@ -48,12 +48,6 @@ jobs:
           APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
         run: python ./pyscripts/check-if-config-file-exists.py
 
-      - name: Print outputs
-        run: |
-          echo "OUTPUTS: $ONFIG_FILES"
-        env:
-          ONFIG_FILES: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}
-
       - name: Update api's
         if: env.UPDATE_CONFIG_FILES != ''
         run: |
@@ -61,7 +55,6 @@ jobs:
           for file in $files; do
             echo "getting api definition..."
             API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
-            echo "api definition: $API_DEFINITION"
             path=$(jq -r '.path' "$file")
             echo "Update api with apim-cli with config file: $file"
             docker run --name apim-cli \
