@@ -1,5 +1,7 @@
 import json
+
 import jsonpath_ng as jsonpath
+
 
 def get_field_by_json_path(file_path, json_path_expression):
     try:
