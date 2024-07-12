@@ -1,21 +1,21 @@
 {
-  "name" : "graphql app",
-  "path" : "/graphql",
-  "state" : "published",
-  "version" : "1.0",
-  "organization" : "API Development",
-  "apiSpecification" : {
-    "resource" : "./schema.graphqls"
+  "name": "graphql app",
+  "path": "/graphql",
+  "state": "published",
+  "version": "1.0",
+  "organization": "API Development",
+  "apiSpecification": {
+    "resource": "./schema.graphqls"
   },
-  "vhost" : "ec2-18-207-108-191.compute-1.amazonaws.com:8065",
-  "backendBasepath" : "http://ec2-3-236-76-63.compute-1.amazonaws.com:8093",
-  "inboundProfiles" : {
-    "_default" : {
-      "monitorAPI" : true,
-      "queryStringPassThrough" : false,
-      "monitorSubject" : "authentication.subject.id",
-      "securityProfile" : "_default",
-      "corsProfile" : "_default"
+  "vhost": "ec2-18-207-108-191.compute-1.amazonaws.com:8065",
+  "backendBasepath": "http://ec2-3-236-76-63.compute-1.amazonaws.com:8093",
+  "inboundProfiles": {
+    "_default": {
+      "monitorAPI": true,
+      "queryStringPassThrough": false,
+      "monitorSubject": "authentication.subject.id",
+      "securityProfile": "_default",
+      "corsProfile": "_default"
     }
   }
 }
