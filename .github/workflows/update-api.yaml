@@ -51,7 +51,7 @@ jobs:
       - name: Update api's
         if: env.UPDATE_CONFIG_FILES != ''
         run: |
-          files=$(echo ${{ env.UPDATE_CONFIG_FILES }} | jq -r '.[]')
+          files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
           for file in $files; do
             echo "getting api definition..."
             API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
