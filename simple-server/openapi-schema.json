@@ -11,6 +11,36 @@
         }
     ],
     "paths": {
+        "/message": {
+            "post": {
+                "tags": [
+                    "app-controller"
+                ],
+                "operationId": "message",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/list": {
             "get": {
                 "tags": [

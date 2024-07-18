@@ -70,6 +70,7 @@ jobs:
     strategy:
       matrix:
         IMPORT_CONFIG_FILE: ${{fromJson(needs.update_api.outputs.IMPORT_CONFIG_FILES)}}
+    if: ${{ needs.update_api.outputs.IMPORT_CONFIG_FILES != '' }}
     uses: ./.github/workflows/import-api.yaml
     with:
       config-file: ${{ matrix.IMPORT_CONFIG_FILE }}
