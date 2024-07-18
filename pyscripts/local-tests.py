@@ -1,6 +1,6 @@
 import os, json, docker, utils
 
-CONFIG_FILE = '["graphql-app/graphql-config.json", "graphql-app/playground-config.json", "simple-server/simple-server-config.json"]'
+CONFIG_FILE = '["simple-server/simple-server-config.json"]'
 CONFIG_FILES = json.loads(CONFIG_FILE)
 APIM_IP = "18.207.108.191"
 APIM_USER = "admin"
@@ -32,7 +32,4 @@ for file in CONFIG_FILES:
         print(f"API config file is new {file}")
         IMPORT_CONFIG_FILES.append(file)
 
-print(f"Config files to be imported: {IMPORT_CONFIG_FILES}")
-print(f"Config files to be updated: {UPDATE_CONFIG_FILES}")
-export_env('UPDATE_CONFIG_FILES', UPDATE_CONFIG_FILES)
-export_env_and_output('MATRIX', json.dumps(IMPORT_CONFIG_FILES))
+print(f"Update config file {json.dumps(UPDATE_CONFIG_FILES)}")
