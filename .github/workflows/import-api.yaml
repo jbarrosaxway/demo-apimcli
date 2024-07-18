@@ -33,7 +33,7 @@ jobs:
           -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/${{ inputs.config-file }}:/$config_file_name" \
           -v "${{ github.workspace }}/$current_folder/$API_DEFINITION_FILE_NAME:/$API_DEFINITION_FILE_NAME" bvieira123/apim-cli:1.14.4  \
           apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "./$config_file_name"
+          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$config_file_name"
           docker rm apim-cli -f
       - name: Cleanup
         if: failure()
