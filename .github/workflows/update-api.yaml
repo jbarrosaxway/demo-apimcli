@@ -63,6 +63,8 @@ jobs:
             path=$(jq -r '.path' "$file")
             echo "Update api with apim-cli with config file: $file"
             echo "Password ${{ secrets.APIM_INSTANCE_PASSWORD }}"
+            echo "${{ github.workspace }}/$file:/$config_file_name"
+            echo "${{ github.workspace }}/$current_folder/$API_DEFINITION_FILE_NAME:/$API_DEFINITION_FILE_NAME"
             docker run --name apim-cli \
             -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$config_file_name" \
             -v "${{ github.workspace }}/$current_folder/$API_DEFINITION_FILE_NAME:/$API_DEFINITION_FILE_NAME" bvieira123/apim-cli:1.14.4  \
