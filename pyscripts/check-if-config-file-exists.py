@@ -41,6 +41,6 @@ for file in CONFIG_FILES:
     IMPORT_CONFIG_FILES.append(file)
 
 if UPDATE_CONFIG_FILES:
-  export_env('UPDATE_CONFIG_FILES', UPDATE_CONFIG_FILES)
+  export_env('UPDATE_CONFIG_FILES', json.dumps(UPDATE_CONFIG_FILES))
 if IMPORT_CONFIG_FILES:
   export_env_and_output('IMPORT_CONFIG_FILES', json.dumps(IMPORT_CONFIG_FILES))
