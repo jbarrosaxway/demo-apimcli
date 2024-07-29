@@ -21,7 +21,7 @@
       "operations": [
         {
           "httpMethod": "GET",
-          "nickname": "graphql",
+          "nickname": "playground",
           "summary": "",
           "notes": "",
           "responseClass": "void",
@@ -34,7 +34,7 @@
         },
         {
           "httpMethod": "POST",
-          "nickname": "graphql",
+          "nickname": "playground",
           "summary": "",
           "notes": "",
           "responseClass": "void",
