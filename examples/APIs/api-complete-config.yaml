@@ -71,6 +71,4 @@ applications:
     state: approved
     permissions: []
     appScopes: []
-customProperties:
-  customProperty1: public
-  customProperty4: true 
+ 

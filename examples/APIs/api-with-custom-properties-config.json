@@ -18,12 +18,7 @@
       "corsProfile": "_default"
     }
   },
-  "customProperties": {
-    "customProperty1": "public",
-    "customProperty2": "internal",
-    "customProperty3": "true",
-    "customProperty4": "2024/12/31"
-  },
+
   "clientOrganizations": [
     "API Development",
     "External Partners"
