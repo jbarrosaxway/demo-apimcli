@@ -132,6 +132,7 @@ jobs:
 
       - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''
+        id: update_apis
         continue-on-error: true
         run: |
           files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
@@ -175,7 +176,7 @@ jobs:
           echo "All APIs updated successfully..."
           
       - name: Check for real errors
-        if: env.UPDATE_CONFIG_FILES != '' && failure()
+        if: env.UPDATE_CONFIG_FILES != '' && steps.update_apis.outcome == 'failure'
         run: |
           echo "❌ Some API updates failed. Check the logs above for details."
           echo "💡 Note: Exit code 10 (No changes detected) is considered success."
