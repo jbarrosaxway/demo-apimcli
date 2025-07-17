@@ -18,8 +18,9 @@
       "corsProfile": "_default"
     }
   },
-  "securityProfiles": {
-    "oauth": {
+  "securityProfiles": [
+    {
+      "name": "oauth",
       "devices": [
         {
           "name": "OAuth",
@@ -34,7 +35,7 @@
         }
       ]
     }
-  },
+  ],
   "clientOrganizations": [
     "API Development"
   ],
