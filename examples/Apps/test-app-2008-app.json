@@ -1,0 +1,9 @@
+{
+  "name": "Test App 2008",
+  "organization": "orga",
+  "description": "Test application for Petstore API",
+  "state": "approved",
+  "enabled": true,
+  "phone": "+1234567893",
+  "email": "testapp@company.com"
+} 

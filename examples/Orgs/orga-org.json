@@ -1,0 +1,8 @@
+{
+  "name": "orga",
+  "description": "Organization for Petstore API",
+  "email": "petstore@company.com",
+  "phone": "+1234567893",
+  "enabled": true,
+  "development": false
+} 
