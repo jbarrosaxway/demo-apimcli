@@ -104,6 +104,7 @@ jobs:
 
       - name: Update API
         if: steps.check_api.outputs.action == 'update' || inputs.force-update == 'true'
+        continue-on-error: true
         run: |
           config_file="${{ inputs.config-file }}"
           config_file_name=$(basename "$config_file")
@@ -143,6 +144,7 @@ jobs:
 
       - name: Import API
         if: steps.check_api.outputs.action == 'import' && inputs.force-update != 'true'
+        continue-on-error: true
         run: |
           config_file="${{ inputs.config-file }}"
           config_file_name=$(basename "$config_file")
@@ -180,6 +182,14 @@ jobs:
             echo "Continuing..."
           fi
 
+      - name: Check for real errors
+        if: failure()
+        run: |
+          echo "❌ API deployment failed. Check the logs above for details."
+          echo "💡 Note: Exit code 10 (No changes detected) is considered success."
+          echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
+          exit 1
+          
       - name: Cleanup
         if: failure()
         run: |

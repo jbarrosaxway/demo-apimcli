@@ -132,6 +132,7 @@ jobs:
 
       - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''
+        continue-on-error: true
         run: |
           files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
           for file in $files; do
@@ -172,6 +173,14 @@ jobs:
             exit $?
           done
           echo "All APIs updated successfully..."
+          
+      - name: Check for real errors
+        if: env.UPDATE_CONFIG_FILES != '' && failure()
+        run: |
+          echo "❌ Some API updates failed. Check the logs above for details."
+          echo "💡 Note: Exit code 10 (No changes detected) is considered success."
+          echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
+          exit 1
   trigger_import:
     needs: update_api
     if: ${{ needs.update_api.outputs.IMPORT_CONFIG_FILES != '[]' && needs.update_api.outputs.IMPORT_CONFIG_FILES != '' }}
