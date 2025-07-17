@@ -198,7 +198,7 @@ jobs:
           echo "✅ Organization imported successfully!"
 
   create_applications:
-    needs: [check_dependencies, create_organization]
+    needs: check_dependencies
     if: needs.check_dependencies.outputs.apps_to_create != ''
     runs-on: ubuntu-latest
     environment: DEMO
