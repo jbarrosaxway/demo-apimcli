@@ -1,0 +1,72 @@
+name: export-apis
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'  # Executar diariamente às 2h da manhã
+
+jobs:
+  export_apis:
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: Create export directory
+        run: |
+          mkdir -p exported-apis
+
+      - name: Export APIs from Axway API Manager
+        run: |
+          echo "Exporting APIs from Axway API Manager..."
+          docker run --rm \
+          -v "${{ github.workspace }}/exported-apis:/opt/apim-cli" \
+          bvieira123/apim-cli:1.14.4 \
+          apim api get \
+          -h ${{ vars.APIM_INSTANCE_IP }} \
+          -u ${{ vars.APIM_INSTANCE_USER }} \
+          -port 8075 \
+          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
+          -o yaml
+
+      - name: List exported files
+        run: |
+          echo "Exported APIs:"
+          ls -la exported-apis/
+          echo ""
+          echo "Contents of each API folder:"
+          for dir in exported-apis/*/; do
+            if [ -d "$dir" ]; then
+              echo "=== $(basename "$dir") ==="
+              ls -la "$dir"
+              echo ""
+            fi
+          done
+
+      - name: Upload exported APIs as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: exported-apis
+          path: exported-apis/
+          retention-days: 30
+
+      - name: Create summary report
+        run: |
+          echo "# API Export Summary" > export-summary.md
+          echo "Generated on: $(date)" >> export-summary.md
+          echo "" >> export-summary.md
+          echo "## Exported APIs:" >> export-summary.md
+          for dir in exported-apis/*/; do
+            if [ -d "$dir" ]; then
+              echo "- $(basename "$dir")" >> export-summary.md
+            fi
+          done
+          echo "" >> export-summary.md
+          echo "Total APIs exported: $(find exported-apis -maxdepth 1 -type d | wc -l)" >> export-summary.md
+
+      - name: Upload summary report
+        uses: actions/upload-artifact@v4
+        with:
+          name: export-summary
+          path: export-summary.md
+          retention-days: 30 
