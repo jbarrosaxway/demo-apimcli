@@ -1,0 +1,56 @@
+---
+name: "ISS Location"
+path: "/api/location"
+state: "published"
+version: "1.0"
+organization: "API Development"
+apiSpecification:
+  resource: "../OAS/iss-location.json"
+summary: "This is a simple API to return the current location of International Space\
+  \ Station. It returns the current latitude and longitude of the space station with\
+  \ a unix timestamp for the time the location was valid. This API takes no inputs."
+backendBasepath: "http://api.open-notify.org"
+inboundProfiles:
+  _default:
+    monitorAPI: true
+    queryStringPassThrough: false
+    monitorSubject: "authentication.subject.id"
+    securityProfile: "_default"
+    corsProfile: "_default"
+outboundProfiles:
+  _default:
+    routeType: "proxy"
+    authenticationProfile: "_default"
+  CurrentLocation:
+    routeType: "proxy"
+    authenticationProfile: "_default"
+securityProfiles:
+- name: "_default"
+  isDefault: true
+  devices:
+  - name: "OAuth"
+    type: "oauth"
+    order: 1
+    properties:
+      tokenStore: "OAuth Access Token Store"
+      accessTokenLocation: "HEADER"
+      authorizationHeaderPrefix: "Bearer"
+      scopesMustMatch: "Any"
+      scopes: "resource.WRITE, resource.READ"
+      removeCredentialsOnSuccess: "true"
+      implicitGrantEnabled: "true"
+      implicitGrantLoginEndpointUrl: "https://localhost:8089/api/oauth/authorize"
+      implicitGrantLoginTokenName: "access_token"
+      authCodeGrantTypeEnabled: "true"
+      authCodeGrantTypeRequestEndpointUrl: "https://localhost:8089/api/oauth/authorize"
+      authCodeGrantTypeRequestClientIdName: "client_id"
+      authCodeGrantTypeRequestSecretName: "client_secret"
+      authCodeGrantTypeTokenEndpointUrl: "https://localhost:8089/api/oauth/token"
+      authCodeGrantTypeTokenEndpointTokenName: "access_code"
+      clientCredentialsGrantTypeEnabled: "false"
+      clientCredentialsGrantTypeTokenEndpointUrl: "https://localhost:8089/api/oauth/token"
+      clientCredentialsGrantTypeTokenName: "access_token"
+clientOrganizations:
+- "Partners"
+applications:
+- name: "API Development App"
