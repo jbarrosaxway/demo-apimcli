@@ -18,17 +18,17 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: import graphql definitions
+      - name: import api definitions
         run: |
-          echo "getting api definition..."
+          echo "Getting API definition..."
           echo "Processing ${{ inputs.config-file }} config file"
           config_file_name=$(basename ${{ inputs.config-file }})
           current_folder=$(dirname ${{ inputs.config-file }})
           API_DEFINITION_FILE_NAME=$(jq -r '.apiSpecification.resource' ${{ inputs.config-file }} | xargs basename)
-          echo "api definition: $API_DEFINITION"
+          echo "API definition: $API_DEFINITION_FILE_NAME"
           path=$(jq -r '.path' ${{ inputs.config-file }})
-          echo "Update api with apim-cli with config file: $file"
-          echo "Password ${{ secrets.APIM_INSTANCE_PASSWORD }}"
+          echo "Importing API with apim-cli using config file: ${{ inputs.config-file }}"
+          echo "API path: $path"
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/${{ inputs.config-file }}:/$config_file_name" \
           -v "${{ github.workspace }}/$current_folder/$API_DEFINITION_FILE_NAME:/$API_DEFINITION_FILE_NAME" bvieira123/apim-cli:1.14.4  \

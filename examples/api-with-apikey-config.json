@@ -1,0 +1,36 @@
+{
+  "name": "API with API Key Security",
+  "path": "/api-with-apikey",
+  "state": "published",
+  "version": "1.0",
+  "organization": "API Development",
+  "apiSpecification": {
+    "resource": "./openapi-spec.json"
+  },
+  "vhost": "ec2-18-207-108-191.compute-1.amazonaws.com:8065",
+  "backendBasepath": "http://backend-service:8080",
+  "inboundProfiles": {
+    "_default": {
+      "monitorAPI": true,
+      "queryStringPassThrough": false,
+      "monitorSubject": "authentication.subject.id",
+      "securityProfile": "api-key",
+      "corsProfile": "_default"
+    }
+  },
+  "securityProfiles": {
+    "api-key": {
+      "devices": [
+        {
+          "name": "API Key",
+          "type": "apiKey",
+          "order": 1,
+          "properties": {
+            "apiKeyFieldName": "X-API-Key",
+            "apiKeyLocation": "HEADER"
+          }
+        }
+      ]
+    }
+  }
+} 

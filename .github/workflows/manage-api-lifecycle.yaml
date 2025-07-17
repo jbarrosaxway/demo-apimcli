@@ -1,0 +1,95 @@
+name: Manage API Lifecycle
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "config file for the API"
+        type: string
+        required: true
+      action:
+        description: "action to perform (import, security, permissions, subscriptions)"
+        type: string
+        required: true
+        default: "import"
+      security-type:
+        description: "type of security to configure (api-key, oauth, etc.)"
+        type: string
+        required: false
+        default: "api-key"
+      organization:
+        description: "organization name for permissions"
+        type: string
+        required: false
+      application:
+        description: "application name for subscriptions"
+        type: string
+        required: false
+      permission-action:
+        description: "permission action (grant or revoke)"
+        type: string
+        required: false
+        default: "grant"
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "config file for the API"
+        type: string
+        required: true
+      action:
+        description: "action to perform (import, security, permissions, subscriptions)"
+        type: string
+        required: true
+        default: "import"
+      security-type:
+        description: "type of security to configure (api-key, oauth, etc.)"
+        type: string
+        required: false
+        default: "api-key"
+      organization:
+        description: "organization name for permissions"
+        type: string
+        required: false
+      application:
+        description: "application name for subscriptions"
+        type: string
+        required: false
+      permission-action:
+        description: "permission action (grant or revoke)"
+        type: string
+        required: false
+        default: "grant"
+
+jobs:
+  import_api:
+    if: inputs.action == 'import'
+    uses: ./.github/workflows/import-api.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+    secrets: inherit
+
+  configure_security:
+    if: inputs.action == 'security'
+    uses: ./.github/workflows/configure-api-security.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+      security-type: ${{ inputs.security-type }}
+    secrets: inherit
+
+  manage_org_permissions:
+    if: inputs.action == 'permissions' && inputs.organization != ''
+    uses: ./.github/workflows/manage-organization-permissions.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+      action: ${{ inputs.permission-action }}
+      organization: ${{ inputs.organization }}
+    secrets: inherit
+
+  manage_app_subscriptions:
+    if: inputs.action == 'subscriptions' && inputs.application != '' && inputs.organization != ''
+    uses: ./.github/workflows/manage-application-subscriptions.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+      action: ${{ inputs.permission-action }}
+      application: ${{ inputs.application }}
+      organization: ${{ inputs.organization }}
+    secrets: inherit 

@@ -6,7 +6,7 @@ import jsonpath_ng as jsonpath
 def get_field_by_json_path(file_path, json_path_expression):
   try:
       with open(file_path, 'r') as file:
-          print(f"Processing config file to api definition... {file_path}")
+          print(f"Processing config file for API definition... {file_path}")
           data = json.load(file)
           name_query = jsonpath.parse(json_path_expression)
           return name_query.find(data)

@@ -1,0 +1,38 @@
+{
+  "name": "API with OAuth Security",
+  "path": "/api-with-oauth",
+  "state": "published",
+  "version": "1.0",
+  "organization": "API Development",
+  "apiSpecification": {
+    "resource": "./openapi-spec.json"
+  },
+  "vhost": "ec2-18-207-108-191.compute-1.amazonaws.com:8065",
+  "backendBasepath": "http://backend-service:8080",
+  "inboundProfiles": {
+    "_default": {
+      "monitorAPI": true,
+      "queryStringPassThrough": false,
+      "monitorSubject": "authentication.subject.id",
+      "securityProfile": "oauth",
+      "corsProfile": "_default"
+    }
+  },
+  "securityProfiles": {
+    "oauth": {
+      "devices": [
+        {
+          "name": "OAuth",
+          "type": "oauth",
+          "order": 1,
+          "properties": {
+            "tokenStore": "TokenInfoPolicy",
+            "accessTokenLocation": "HEADER",
+            "accessTokenLocationName": "Authorization",
+            "accessTokenLocationValue": "Bearer "
+          }
+        }
+      ]
+    }
+  }
+} 

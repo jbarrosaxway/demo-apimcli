@@ -31,7 +31,7 @@ def export_env_and_output(key, value):
 for file in CONFIG_FILES:
   path = utils.get_field_by_json_path(file, "$.path")[0].value
   container_command = f"apim api get -h {APIM_IP} -u {APIM_USER} -port 8075 -p {APIM_PASSWORD} -a {path}"
-  print(f"Running api search in apim-cli for file {file}")
+  print(f"Running API search in apim-cli for file {file}")
   byte_result = docker_client.containers.run("bvieira123/apim-cli:1.14.4", container_command, stdout=True, stderr=True, remove=True)
   result = byte_result.decode('utf-8')
   if path in result:

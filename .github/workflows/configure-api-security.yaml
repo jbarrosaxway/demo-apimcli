@@ -1,0 +1,60 @@
+name: Configure API Security
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "config file to configure security"
+        type: string
+        required: true
+      security-type:
+        description: "type of security to configure (api-key, oauth, etc.)"
+        type: string
+        required: true
+        default: "api-key"
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "config file to configure security"
+        type: string
+        required: true
+      security-type:
+        description: "type of security to configure (api-key, oauth, etc.)"
+        type: string
+        required: true
+        default: "api-key"
+
+jobs:
+  configure_security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Configure API Security
+        run: |
+          echo "Configuring security for API..."
+          echo "Processing ${{ inputs.config-file }} config file"
+          config_file_name=$(basename ${{ inputs.config-file }})
+          current_folder=$(dirname ${{ inputs.config-file }})
+          
+          # Extract API name from config file
+          API_NAME=$(jq -r '.name' ${{ inputs.config-file }})
+          echo "API Name: $API_NAME"
+          
+          # Configure API Key security
+          if [ "${{ inputs.security-type }}" = "api-key" ]; then
+            echo "Configuring API Key security..."
+            docker run --name apim-cli \
+            -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/${{ inputs.config-file }}:/$config_file_name" \
+            bvieira123/apim-cli:1.14.4 \
+            apim api update -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
+            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -n "$API_NAME" \
+            --securityProfile api-key
+          fi
+          
+          docker rm apim-cli -f
+      
+      - name: Cleanup
+        if: failure()
+        run: |
+          docker rm apim-cli -f 

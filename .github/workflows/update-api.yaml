@@ -46,19 +46,35 @@ jobs:
           APIM_INSTANCE_IP: ${{ vars.APIM_INSTANCE_IP }}
           APIM_INSTANCE_USER: ${{ vars.APIM_INSTANCE_USER }}
           APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
-        run: python ./pyscripts/check-if-config-file-exists.py
+        run: |
+          set -e
+          UPDATE_CONFIG_FILES=()
+          IMPORT_CONFIG_FILES=()
+          for file in $(echo $CONFIG_FILES | jq -r '.[]'); do
+            path=$(jq -r '.path' "$file")
+            echo "Verificando existência da API com path: $path"
+            result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim api get -h "$APIM_INSTANCE_IP" -u "$APIM_INSTANCE_USER" -port 8075 -p "$APIM_INSTANCE_PASSWORD" -a "$path")
+            if echo "$result" | grep -q "$path"; then
+              UPDATE_CONFIG_FILES+=("$file")
+            else
+              IMPORT_CONFIG_FILES+=("$file")
+            fi
+          done
+          echo "UPDATE_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${UPDATE_CONFIG_FILES[@]}")" >> $GITHUB_ENV
+          echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_ENV
+          echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_OUTPUT
 
-      - name: Update api's
+      - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''
         run: |
           files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
           for file in $files; do
-            echo "getting api definition..."
+            echo "Getting API definition..."
             config_file_name=$(basename "$file")
             current_folder=$(dirname "$file")
             API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
             path=$(jq -r '.path' "$file")
-            echo "Update api with apim-cli with config file: $file"
+            echo "Updating API with apim-cli using config file: $file"
             docker run --name apim-cli \
             -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$config_file_name" \
             -v "${{ github.workspace }}/$current_folder/$API_DEFINITION:/$API_DEFINITION" bvieira123/apim-cli:1.14.4  \
@@ -66,7 +82,7 @@ jobs:
             -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/$config_file_name" -force
             docker rm apim-cli -f
           done
-          echo "All file updated..."
+          echo "All APIs updated successfully..."
   trigger_import:
     needs: update_api
     strategy:
