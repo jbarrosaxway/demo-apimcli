@@ -172,7 +172,7 @@ jobs:
     steps:
       - name: Create Organization
         run: |
-          org_data="${{ needs.check_dependencies.outputs.org_data }}"
+          org_data='${{ needs.check_dependencies.outputs.org_data }}'
           echo "🏢 Creating organization from config data"
           
           # Extract organization info from JSON data
