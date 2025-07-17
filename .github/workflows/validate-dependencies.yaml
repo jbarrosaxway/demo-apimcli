@@ -118,27 +118,30 @@ jobs:
           if [ -n "$apps" ]; then
             echo "📱 Found applications in config: $apps"
             
-            for app_name in $apps; do
-              echo "🔍 Checking if application '$app_name' exists..."
-              
-              # Check if application exists
-              result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim app get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$app_name" 2>/dev/null || echo "")
-              
-              if echo "$result" | grep -q "$app_name"; then
-                echo "✅ Application '$app_name' exists"
-              else
-                echo "❌ Application '$app_name' does not exist"
+            # Process each application (each line is a separate application)
+            echo "$apps" | while IFS= read -r app_name; do
+              if [ -n "$app_name" ]; then
+                echo "🔍 Checking if application '$app_name' exists..."
                 
-                # Look for application config file in Apps folder
-                app_file="examples/Apps/${app_name,,}-app.json"
-                if [ -f "$app_file" ]; then
-                  echo "📁 Found application config file: $app_file"
-                  apps_to_create="$apps_to_create $app_file"
+                # Check if application exists
+                result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim app get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$app_name" 2>/dev/null || echo "")
+                
+                if echo "$result" | grep -q "$app_name"; then
+                  echo "✅ Application '$app_name' exists"
                 else
-                  echo "⚠️ No application config file found for '$app_name'"
-                  echo "Expected file: $app_file"
-                  echo "Available app files:"
-                  ls -la examples/Apps/ || echo "No Apps folder found"
+                  echo "❌ Application '$app_name' does not exist"
+                  
+                  # Look for application config file in Apps folder
+                  app_file="examples/Apps/${app_name,,}-app.json"
+                  if [ -f "$app_file" ]; then
+                    echo "📁 Found application config file: $app_file"
+                    apps_to_create="$apps_to_create $app_file"
+                  else
+                    echo "⚠️ No application config file found for '$app_name'"
+                    echo "Expected file: $app_file"
+                    echo "Available app files:"
+                    ls -la examples/Apps/ || echo "No Apps folder found"
+                  fi
                 fi
               fi
             done
