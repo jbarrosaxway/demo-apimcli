@@ -62,7 +62,25 @@ jobs:
           -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}:/workspace" bvieira123/apim-cli:1.14.4  \
           apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
           -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/workspace/${{ inputs.config-file }}"
+          
+          # Capture the exit code
+          EXIT_CODE=$?
+          
+          # Clean up container
           docker rm apim-cli -f
+          
+          # Handle exit codes: 0 = success, 10 = no changes (also success)
+          if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 10 ]; then
+            if [ $EXIT_CODE -eq 10 ]; then
+              echo "✅ API import completed successfully - No changes detected (exit code 10)"
+            else
+              echo "✅ API import completed successfully"
+            fi
+            exit 0
+          else
+            echo "❌ API import failed with exit code: $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
       - name: Cleanup
         if: failure()
         run: |

@@ -1,10 +1,56 @@
-# Exportação de APIs do Axway API Manager
+# Gerenciamento de APIs do Axway API Manager
 
-Este projeto inclui ferramentas para exportar APIs do Axway API Manager para arquivos locais.
+Este projeto inclui ferramentas para importar e exportar APIs do Axway API Manager.
 
-## Métodos de Exportação
+## Métodos de Importação
 
 ### 1. Workflow GitHub Actions (Recomendado)
+
+O workflow `.github/workflows/import-api.yaml` executa automaticamente:
+
+- **Manual**: Via GitHub Actions → Workflows → import-apiconfig → Run workflow
+- **Parâmetro**: Config file path (ex: `examples/APIs/api-location-config.yaml`)
+
+#### Como usar:
+1. Vá para a aba "Actions" no GitHub
+2. Selecione "import-apiconfig"
+3. Clique em "Run workflow"
+4. Digite o caminho do arquivo de configuração
+5. Execute o workflow
+
+### 2. Script Local
+
+Use o script `scripts/import-api.sh` para importação local:
+
+#### Como usar:
+
+```bash
+# Com variáveis de ambiente
+export APIM_INSTANCE_IP="44.195.43.239"
+export APIM_INSTANCE_USER="apiadmin"
+export APIM_INSTANCE_PASSWORD="changeme"
+./scripts/import-api.sh examples/APIs/api-location-config.yaml
+
+# Ou com valores padrão
+./scripts/import-api.sh examples/APIs/api-location-config.yaml
+```
+
+### 3. Comando Docker direto
+
+```bash
+docker run --rm \
+  -e LOG_LEVEL=DEBUG \
+  -v "$(pwd):/workspace" \
+  bvieira123/apim-cli:1.14.4 \
+  apim api import \
+  -h "44.195.43.239" \
+  -u "apiadmin" \
+  -port 8075 \
+  -p "changeme" \
+  -c "/workspace/examples/APIs/api-location-config.yaml"
+```
+
+## Métodos de Exportação
 
 O workflow `.github/workflows/export-apis.yaml` executa automaticamente:
 
@@ -121,7 +167,21 @@ sudo service docker start
 ```bash
 # Dar permissão de execução ao script
 chmod +x scripts/export-apis.sh
+chmod +x scripts/import-api.sh
 ```
+
+### Código de erro 10 na importação
+O código de erro 10 indica "No changes detected" - significa que a API já está atualizada no API Manager. Isso é tratado como sucesso nos workflows e scripts.
+
+**Mensagem típica:**
+```
+No changes detected between Import- and API-Manager-API: 'API Name'
+```
+
+**Comportamento:**
+- ✅ Workflow GitHub Actions: Tratado como sucesso
+- ✅ Script local: Tratado como sucesso
+- ✅ API permanece inalterada no API Manager
 
 ## Exemplo de Uso
 

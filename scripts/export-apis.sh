@@ -52,8 +52,11 @@ docker run --rm \
   -p "$APIM_INSTANCE_PASSWORD" \
   -o yaml
 
+# Capture the exit code
+EXIT_CODE=$?
+
 # Verificar se a exportação foi bem-sucedida
-if [ $? -eq 0 ]; then
+if [ $EXIT_CODE -eq 0 ]; then
     echo -e "${GREEN}✅ Exportação concluída com sucesso!${NC}"
     
     # Listar APIs exportadas
