@@ -89,7 +89,6 @@ jobs:
             echo "UPDATE_CONFIG_FILES=[]" >> $GITHUB_ENV
             echo "IMPORT_CONFIG_FILES=[]" >> $GITHUB_ENV
             echo "IMPORT_CONFIG_FILES=[]" >> $GITHUB_OUTPUT
-            echo "No config files to process" >> $GITHUB_OUTPUT
             exit 0
           fi
           
