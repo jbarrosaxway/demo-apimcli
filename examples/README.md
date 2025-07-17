@@ -122,9 +122,75 @@ examples/
   - Health check para monitoramento
   - Gestão de status de serviços
 
+## Arquitetura de Reutilização de Workflows
+
+### 🔄 Princípio de Reutilização
+Os workflows foram projetados seguindo o princípio DRY (Don't Repeat Yourself):
+- **Workflows base**: `manage-organizations.yaml` e `manage-applications.yaml` contêm a lógica de criação/atualização
+- **Workflow de validação**: `validate-dependencies.yaml` reutiliza os workflows base para validar e criar dependências
+- **Workflows de API**: `import-api.yaml`, `update-api.yaml`, `manual-api-deploy.yaml` reutilizam `validate-dependencies.yaml`
+
+### 📋 Hierarquia de Workflows
+```
+validate-dependencies.yaml
+├── manage-organizations.yaml (reutiliza)
+└── manage-applications.yaml (reutiliza)
+
+import-api.yaml
+├── validate-dependencies.yaml (reutiliza)
+└── manage-organizations.yaml (indiretamente)
+└── manage-applications.yaml (indiretamente)
+
+update-api.yaml
+├── validate-dependencies.yaml (reutiliza)
+└── manage-organizations.yaml (indiretamente)
+└── manage-applications.yaml (indiretamente)
+
+manual-api-deploy.yaml
+├── validate-dependencies.yaml (reutiliza)
+└── manage-organizations.yaml (indiretamente)
+└── manage-applications.yaml (indiretamente)
+```
+
 ## Workflows do GitHub Actions
 
-### 1. Configure API Security (`configure-api-security.yaml`)
+### 1. Validate Dependencies (`validate-dependencies.yaml`) 🔍
+**Workflow reutilizável** que valida e cria automaticamente organizações e aplicações necessárias:
+- Extrai organização e aplicações do arquivo de configuração da API
+- Verifica se recursos existem no APIM
+- Cria automaticamente se não existirem (usando arquivos em `Orgs/` e `Apps/`)
+- **Reutiliza**: `manage-organizations.yaml` e `manage-applications.yaml`
+- **Usado por**: `import-api.yaml`, `update-api.yaml`, `manual-api-deploy.yaml`
+
+### 2. Import API (`import-api.yaml`)
+Workflow para importar APIs (usa `validate-dependencies.yaml`):
+```yaml
+uses: ./.github/workflows/import-api.yaml
+with:
+  config-file: "examples/APIs/api-with-apikey-config.json"
+```
+
+### 3. Update API (`update-api.yaml`)
+Workflow para atualizar APIs (usa `validate-dependencies.yaml`):
+```yaml
+uses: ./.github/workflows/update-api.yaml
+with:
+  config-file: "examples/APIs/api-with-apikey-config.json"
+```
+
+### 4. Manual API Deploy (`manual-api-deploy.yaml`)
+Workflow manual para deploy de API específica (usa `validate-dependencies.yaml`):
+```yaml
+# Via GitHub CLI
+gh workflow run manual-api-deploy.yaml \
+  -f config-file="examples/APIs/api-with-apikey-config.json" \
+  -f force-update=false
+
+# Via GitHub Web Interface
+# Actions > Manual API Deploy > Run workflow
+```
+
+### 5. Configure API Security (`configure-api-security.yaml`)
 Workflow para configurar segurança de API:
 ```yaml
 uses: ./.github/workflows/configure-api-security.yaml
@@ -133,7 +199,7 @@ with:
   security-type: "api-key"
 ```
 
-### 2. Manage Organization Permissions (`manage-organization-permissions.yaml`)
+### 6. Manage Organization Permissions (`manage-organization-permissions.yaml`)
 Workflow para gerenciar permissões de organizações:
 ```yaml
 uses: ./.github/workflows/manage-organization-permissions.yaml
@@ -143,7 +209,7 @@ with:
   organization: "API Development"
 ```
 
-### 3. Manage Application Subscriptions (`manage-application-subscriptions.yaml`)
+### 7. Manage Application Subscriptions (`manage-application-subscriptions.yaml`)
 Workflow para gerenciar assinaturas de aplicações:
 ```yaml
 uses: ./.github/workflows/manage-application-subscriptions.yaml
@@ -154,7 +220,7 @@ with:
   organization: "API Development"
 ```
 
-### 4. Manage API Lifecycle (`manage-api-lifecycle.yaml`)
+### 8. Manage API Lifecycle (`manage-api-lifecycle.yaml`)
 Workflow principal que integra todas as funcionalidades:
 ```yaml
 uses: ./.github/workflows/manage-api-lifecycle.yaml
@@ -167,20 +233,8 @@ with:
   permission-action: "grant"
 ```
 
-### 5. Manual API Deploy (`manual-api-deploy.yaml`)
-Workflow manual para deploy de API específica:
-```yaml
-# Via GitHub CLI
-gh workflow run manual-api-deploy.yaml \
-  -f config-file="examples/APIs/api-with-apikey-config.json" \
-  -f force-update=false
-
-# Via GitHub Web Interface
-# Actions > Manual API Deploy > Run workflow
-```
-
-### 6. Manage Organizations (`manage-organizations.yaml`)
-Workflow para gerenciar organizações:
+### 9. Manage Organizations (`manage-organizations.yaml`)
+Workflow para gerenciar organizações (reutilizado por outros workflows):
 ```yaml
 # Via GitHub CLI
 gh workflow run manage-organizations.yaml \
@@ -192,8 +246,8 @@ gh workflow run manage-organizations.yaml \
 # Actions > Manage Organizations > Run workflow
 ```
 
-### 7. Manage Applications (`manage-applications.yaml`)
-Workflow para gerenciar aplicações:
+### 10. Manage Applications (`manage-applications.yaml`)
+Workflow para gerenciar aplicações (reutilizado por outros workflows):
 ```yaml
 # Via GitHub CLI
 gh workflow run manage-applications.yaml \
