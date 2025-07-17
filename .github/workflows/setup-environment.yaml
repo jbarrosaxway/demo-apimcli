@@ -1,0 +1,94 @@
+name: Setup Environment
+on:
+  workflow_dispatch:
+    inputs:
+      org-name:
+        description: "Organization name to create"
+        type: string
+        required: true
+        default: "API Development"
+      app-name:
+        description: "Application name to create"
+        type: string
+        required: true
+        default: "Test Application"
+      config-file:
+        description: "API config file to deploy (optional)"
+        type: string
+        required: false
+        default: ""
+      skip-api:
+        description: "Skip API deployment"
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  create_organization:
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Create Organization
+        uses: ./.github/workflows/manage-organizations.yaml
+        with:
+          action: "create"
+          org-name: ${{ inputs.org-name }}
+          org-description: "Organization for API Development"
+          org-email: "admin@apidev.com"
+          org-phone: "+1234567890"
+          org-enabled: true
+          org-development: true
+        secrets: inherit
+
+  create_application:
+    needs: create_organization
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Create Application
+        uses: ./.github/workflows/manage-applications.yaml
+        with:
+          action: "create"
+          app-name: ${{ inputs.app-name }}
+          org-name: ${{ inputs.org-name }}
+          app-description: "Test application for API development"
+          app-state: "approved"
+          app-enabled: true
+          app-phone: "+1234567890"
+          app-email: "app@apidev.com"
+        secrets: inherit
+
+  deploy_api:
+    needs: create_application
+    if: inputs.config-file != '' && inputs.skip-api != 'true'
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Deploy API
+        uses: ./.github/workflows/manual-api-deploy.yaml
+        with:
+          config-file: ${{ inputs.config-file }}
+          force-update: false
+        secrets: inherit
+
+  success_summary:
+    needs: [create_organization, create_application, deploy_api]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Summary
+        run: |
+          echo "🎉 Environment setup completed!"
+          echo "📋 Summary:"
+          echo "  ✅ Organization: ${{ inputs.org-name }}"
+          echo "  ✅ Application: ${{ inputs.app-name }}"
+          if [ "${{ inputs.config-file }}" != "" ] && [ "${{ inputs.skip-api }}" != "true" ]; then
+            echo "  ✅ API: ${{ inputs.config-file }}"
+          else
+            echo "  ⏭️ API: Skipped"
+          fi
+          echo ""
+          echo "🚀 Next steps:"
+          echo "  1. Organizations and applications are ready"
+          echo "  2. You can now deploy APIs using manual-api-deploy.yaml"
+          echo "  3. Use manage-api-lifecycle.yaml for advanced operations" 

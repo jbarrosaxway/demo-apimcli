@@ -1,0 +1,170 @@
+name: Manage Applications
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: "action to perform (create, update, delete)"
+        type: string
+        required: true
+        default: "create"
+      app-name:
+        description: "application name"
+        type: string
+        required: true
+      org-name:
+        description: "organization name"
+        type: string
+        required: true
+      app-description:
+        description: "application description"
+        type: string
+        required: false
+        default: "Application created via GitHub Actions"
+      app-state:
+        description: "application state (approved, pending, rejected)"
+        type: string
+        required: false
+        default: "approved"
+      app-enabled:
+        description: "application enabled status"
+        type: boolean
+        required: false
+        default: true
+      app-phone:
+        description: "application phone"
+        type: string
+        required: false
+        default: "+1234567890"
+      app-email:
+        description: "application email"
+        type: string
+        required: false
+        default: "app@example.com"
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "action to perform (create, update, delete)"
+        type: string
+        required: true
+        default: "create"
+      app-name:
+        description: "application name"
+        type: string
+        required: true
+      org-name:
+        description: "organization name"
+        type: string
+        required: true
+      app-description:
+        description: "application description"
+        type: string
+        required: false
+        default: "Application created via GitHub Actions"
+      app-state:
+        description: "application state (approved, pending, rejected)"
+        type: string
+        required: false
+        default: "approved"
+      app-enabled:
+        description: "application enabled status"
+        type: boolean
+        required: false
+        default: true
+      app-phone:
+        description: "application phone"
+        type: string
+        required: false
+        default: "+1234567890"
+      app-email:
+        description: "application email"
+        type: string
+        required: false
+        default: "app@example.com"
+
+jobs:
+  manage_application:
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Application
+        if: inputs.action == 'create'
+        run: |
+          echo "📱 Creating application: ${{ inputs.app-name }}"
+          echo "🏢 Organization: ${{ inputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ inputs.app-name }}" \
+          --org "${{ inputs.org-name }}" \
+          --description "${{ inputs.app-description }}" \
+          --state "${{ inputs.app-state }}" \
+          --enabled "${{ inputs.app-enabled }}" \
+          --phone "${{ inputs.app-phone }}" \
+          --email "${{ inputs.app-email }}"
+          
+          docker rm apim-cli -f
+          echo "✅ Application created successfully!"
+
+      - name: Update Application
+        if: inputs.action == 'update'
+        run: |
+          echo "🔄 Updating application: ${{ inputs.app-name }}"
+          echo "🏢 Organization: ${{ inputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim app update -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ inputs.app-name }}" \
+          --org "${{ inputs.org-name }}" \
+          --description "${{ inputs.app-description }}" \
+          --state "${{ inputs.app-state }}" \
+          --enabled "${{ inputs.app-enabled }}" \
+          --phone "${{ inputs.app-phone }}" \
+          --email "${{ inputs.app-email }}"
+          
+          docker rm apim-cli -f
+          echo "✅ Application updated successfully!"
+
+      - name: Delete Application
+        if: inputs.action == 'delete'
+        run: |
+          echo "🗑️ Deleting application: ${{ inputs.app-name }}"
+          echo "🏢 Organization: ${{ inputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim app delete -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ inputs.app-name }}" \
+          --org "${{ inputs.org-name }}" \
+          --force
+          
+          docker rm apim-cli -f
+          echo "✅ Application deleted successfully!"
+
+      - name: Cleanup
+        if: failure()
+        run: |
+          docker rm apim-cli -f
+
+      - name: Success Summary
+        if: success()
+        run: |
+          echo "🎉 Application operation completed successfully!"
+          echo "📋 Summary:"
+          echo "  Action: ${{ inputs.action }}"
+          echo "  Application: ${{ inputs.app-name }}"
+          echo "  Organization: ${{ inputs.org-name }}"
+          echo "  Description: ${{ inputs.app-description }}"
+          echo "  State: ${{ inputs.app-state }}"
+          echo "  Enabled: ${{ inputs.app-enabled }}"
+          echo "  Email: ${{ inputs.app-email }}" 

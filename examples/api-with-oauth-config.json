@@ -34,5 +34,17 @@
         }
       ]
     }
-  }
+  },
+  "clientOrganizations": [
+    "API Development"
+  ],
+  "applications": [
+    {
+      "name": "Test Application",
+      "enabled": true,
+      "state": "approved",
+      "permissions": [],
+      "appScopes": []
+    }
+  ]
 } 

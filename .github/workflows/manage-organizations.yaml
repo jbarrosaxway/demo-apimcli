@@ -1,0 +1,155 @@
+name: Manage Organizations
+on:
+  workflow_call:
+    inputs:
+      action:
+        description: "action to perform (create, update, delete)"
+        type: string
+        required: true
+        default: "create"
+      org-name:
+        description: "organization name"
+        type: string
+        required: true
+      org-description:
+        description: "organization description"
+        type: string
+        required: false
+        default: "Organization created via GitHub Actions"
+      org-email:
+        description: "organization email"
+        type: string
+        required: false
+        default: "admin@example.com"
+      org-phone:
+        description: "organization phone"
+        type: string
+        required: false
+        default: "+1234567890"
+      org-enabled:
+        description: "organization enabled status"
+        type: boolean
+        required: false
+        default: true
+      org-development:
+        description: "organization development flag"
+        type: boolean
+        required: false
+        default: true
+  workflow_dispatch:
+    inputs:
+      action:
+        description: "action to perform (create, update, delete)"
+        type: string
+        required: true
+        default: "create"
+      org-name:
+        description: "organization name"
+        type: string
+        required: true
+      org-description:
+        description: "organization description"
+        type: string
+        required: false
+        default: "Organization created via GitHub Actions"
+      org-email:
+        description: "organization email"
+        type: string
+        required: false
+        default: "admin@example.com"
+      org-phone:
+        description: "organization phone"
+        type: string
+        required: false
+        default: "+1234567890"
+      org-enabled:
+        description: "organization enabled status"
+        type: boolean
+        required: false
+        default: true
+      org-development:
+        description: "organization development flag"
+        type: boolean
+        required: false
+        default: true
+
+jobs:
+  manage_organization:
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create Organization
+        if: inputs.action == 'create'
+        run: |
+          echo "🏢 Creating organization: ${{ inputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ inputs.org-name }}" \
+          --description "${{ inputs.org-description }}" \
+          --email "${{ inputs.org-email }}" \
+          --phone "${{ inputs.org-phone }}" \
+          --enabled "${{ inputs.org-enabled }}" \
+          --development "${{ inputs.org-development }}"
+          
+          docker rm apim-cli -f
+          echo "✅ Organization created successfully!"
+
+      - name: Update Organization
+        if: inputs.action == 'update'
+        run: |
+          echo "🔄 Updating organization: ${{ inputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim org update -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ inputs.org-name }}" \
+          --description "${{ inputs.org-description }}" \
+          --email "${{ inputs.org-email }}" \
+          --phone "${{ inputs.org-phone }}" \
+          --enabled "${{ inputs.org-enabled }}" \
+          --development "${{ inputs.org-development }}"
+          
+          docker rm apim-cli -f
+          echo "✅ Organization updated successfully!"
+
+      - name: Delete Organization
+        if: inputs.action == 'delete'
+        run: |
+          echo "🗑️ Deleting organization: ${{ inputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim org delete -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ inputs.org-name }}" \
+          --force
+          
+          docker rm apim-cli -f
+          echo "✅ Organization deleted successfully!"
+
+      - name: Cleanup
+        if: failure()
+        run: |
+          docker rm apim-cli -f
+
+      - name: Success Summary
+        if: success()
+        run: |
+          echo "🎉 Organization operation completed successfully!"
+          echo "📋 Summary:"
+          echo "  Action: ${{ inputs.action }}"
+          echo "  Organization: ${{ inputs.org-name }}"
+          echo "  Description: ${{ inputs.org-description }}"
+          echo "  Email: ${{ inputs.org-email }}"
+          echo "  Enabled: ${{ inputs.org-enabled }}"
+          echo "  Development: ${{ inputs.org-development }}" 

@@ -96,6 +96,45 @@ gh workflow run manual-api-deploy.yaml \
 # Actions > Manual API Deploy > Run workflow
 ```
 
+### 6. Manage Organizations (`manage-organizations.yaml`)
+Workflow para gerenciar organizações:
+```yaml
+# Via GitHub CLI
+gh workflow run manage-organizations.yaml \
+  -f action="create" \
+  -f org-name="API Development" \
+  -f org-description="Organization for API Development"
+
+# Via GitHub Web Interface
+# Actions > Manage Organizations > Run workflow
+```
+
+### 7. Manage Applications (`manage-applications.yaml`)
+Workflow para gerenciar aplicações:
+```yaml
+# Via GitHub CLI
+gh workflow run manage-applications.yaml \
+  -f action="create" \
+  -f app-name="Test Application" \
+  -f org-name="API Development"
+
+# Via GitHub Web Interface
+# Actions > Manage Applications > Run workflow
+```
+
+### 8. Setup Environment (`setup-environment.yaml`)
+Workflow principal que executa na ordem correta:
+```yaml
+# Via GitHub CLI
+gh workflow run setup-environment.yaml \
+  -f org-name="API Development" \
+  -f app-name="Test Application" \
+  -f config-file="examples/api-with-apikey-config.json"
+
+# Via GitHub Web Interface
+# Actions > Setup Environment > Run workflow
+```
+
 ## Como Usar
 
 ### 1. Importar uma API
@@ -148,6 +187,63 @@ gh workflow run manual-api-deploy.yaml \
   -f force-update=true
 ```
 
+### 6. Setup Completo do Ambiente
+```bash
+# Setup completo: Organization -> Application -> API
+gh workflow run setup-environment.yaml \
+  -f org-name="API Development" \
+  -f app-name="Test Application" \
+  -f config-file="examples/api-with-apikey-config.json"
+
+# Setup apenas Organization e Application (sem API)
+gh workflow run setup-environment.yaml \
+  -f org-name="API Development" \
+  -f app-name="Test Application" \
+  -f skip-api=true
+```
+
+### 7. Gerenciar Organizações
+```bash
+# Criar organização
+gh workflow run manage-organizations.yaml \
+  -f action="create" \
+  -f org-name="API Development" \
+  -f org-description="Organization for API Development"
+
+# Atualizar organização
+gh workflow run manage-organizations.yaml \
+  -f action="update" \
+  -f org-name="API Development" \
+  -f org-description="Updated description"
+
+# Deletar organização
+gh workflow run manage-organizations.yaml \
+  -f action="delete" \
+  -f org-name="API Development"
+```
+
+### 8. Gerenciar Aplicações
+```bash
+# Criar aplicação
+gh workflow run manage-applications.yaml \
+  -f action="create" \
+  -f app-name="Test Application" \
+  -f org-name="API Development"
+
+# Atualizar aplicação
+gh workflow run manage-applications.yaml \
+  -f action="update" \
+  -f app-name="Test Application" \
+  -f org-name="API Development" \
+  -f app-state="approved"
+
+# Deletar aplicação
+gh workflow run manage-applications.yaml \
+  -f action="delete" \
+  -f app-name="Test Application" \
+  -f org-name="API Development"
+```
+
 ## Variáveis de Ambiente Necessárias
 
 Certifique-se de que as seguintes variáveis estejam configuradas no seu repositório:
@@ -178,7 +274,10 @@ Todos os workflows estão configurados para usar o ambiente `DEMO`. Configure as
 ├── manage-organization-permissions.yaml # Gerenciar permissões de org
 ├── manage-application-subscriptions.yaml # Gerenciar assinaturas de app
 ├── manage-api-lifecycle.yaml          # Workflow principal integrado
-└── manual-api-deploy.yaml             # Deploy manual de API específica
+├── manual-api-deploy.yaml             # Deploy manual de API específica
+├── manage-organizations.yaml          # Gerenciar organizações
+├── manage-applications.yaml           # Gerenciar aplicações
+└── setup-environment.yaml             # Setup completo do ambiente
 
 examples/
 ├── README.md                          # Esta documentação
@@ -206,4 +305,13 @@ O workflow `update-api.yaml` agora detecta automaticamente:
 2. Workflow detecta a mudança no Swagger
 3. Workflow encontra `api-with-apikey-config.json` que referencia este Swagger
 4. Workflow verifica se a API existe e decide entre update ou import
-5. API é atualizada/importada automaticamente 
+5. API é atualizada/importada automaticamente
+
+### Ordem de Execução Recomendada
+Para garantir que as dependências sejam criadas na ordem correta:
+
+1. **Organization** → Criar organização primeiro
+2. **Application** → Criar aplicação na organização
+3. **API** → Deploy da API com referências corretas
+
+Use o workflow `setup-environment.yaml` para executar automaticamente nesta ordem. 
