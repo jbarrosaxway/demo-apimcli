@@ -81,7 +81,9 @@ jobs:
             echo "exists=false" >> $GITHUB_OUTPUT
             
             # Look for organization config file in Orgs folder
-            org_file="examples/Orgs/${organization,,}-org.json"
+            # Convert spaces to hyphens and make lowercase
+            org_file_name=$(echo "$organization" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+            org_file="examples/Orgs/${org_file_name}-org.json"
             if [ -f "$org_file" ]; then
               echo "📁 Found organization config file: $org_file"
               echo "org_file=$org_file" >> $GITHUB_OUTPUT
