@@ -106,17 +106,36 @@ jobs:
 
       - name: Create Organization
         if: steps.check_org.outputs.exists == 'false'
-        needs: read_org_config
-        uses: ./.github/workflows/manage-organizations.yaml
-        with:
-          action: "create"
-          org-name: ${{ fromJSON(steps.read_org_config.outputs.org_data).name }}
-          org-description: ${{ fromJSON(steps.read_org_config.outputs.org_data).description }}
-          org-email: ${{ fromJSON(steps.read_org_config.outputs.org_data).email }}
-          org-phone: ${{ fromJSON(steps.read_org_config.outputs.org_data).phone }}
-          org-enabled: ${{ fromJSON(steps.read_org_config.outputs.org_data).enabled }}
-          org-development: ${{ fromJSON(steps.read_org_config.outputs.org_data).development }}
-        secrets: inherit
+        run: |
+          org_file="${{ steps.check_org.outputs.org_file }}"
+          echo "🏢 Creating organization from config file: $org_file"
+          
+          # Extract organization info from config file
+          org_name=$(jq -r '.name' "$org_file")
+          org_description=$(jq -r '.description' "$org_file")
+          org_email=$(jq -r '.email' "$org_file")
+          org_phone=$(jq -r '.phone' "$org_file")
+          org_enabled=$(jq -r '.enabled' "$org_file")
+          org_development=$(jq -r '.development' "$org_file")
+          
+          echo "Creating organization: $org_name"
+          echo "Description: $org_description"
+          echo "Email: $org_email"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "$org_name" \
+          --description "$org_description" \
+          --email "$org_email" \
+          --phone "$org_phone" \
+          --enabled "$org_enabled" \
+          --development "$org_development"
+          
+          docker rm apim-cli -f
+          echo "✅ Organization '$org_name' created successfully!"
 
       - name: Check Applications Exist
         id: check_apps
@@ -176,13 +195,21 @@ jobs:
             
             echo "Creating application: $app_name in organization: $app_org"
             
-            # Use the manage-applications workflow
-            echo "::group::Create Application: $app_name"
-            echo "Using manage-applications workflow for: $app_name"
-            echo "Organization: $app_org"
-            echo "Description: $app_description"
-            echo "State: $app_state"
-            echo "::endgroup::"
+            docker run --name apim-cli \
+            -e LOG_LEVEL=DEBUG \
+            bvieira123/apim-cli:1.14.4 \
+            apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+            -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+            --name "$app_name" \
+            --org "$app_org" \
+            --description "$app_description" \
+            --state "$app_state" \
+            --enabled "$app_enabled" \
+            --phone "$app_phone" \
+            --email "$app_email"
+            
+            docker rm apim-cli -f
+            echo "✅ Application '$app_name' created successfully!"
           done
 
       - name: Validation Summary
