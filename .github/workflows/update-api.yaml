@@ -128,6 +128,66 @@ jobs:
           echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_ENV
           echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_OUTPUT
 
+      - name: Validate Dependencies for Updates
+        if: env.UPDATE_CONFIG_FILES != ''
+        run: |
+          files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
+          for file in $files; do
+            echo "🔍 Validating dependencies for: $file"
+            
+            # Extract organization from config file
+            if [[ "$file" == *.yaml ]] || [[ "$file" == *.yml ]]; then
+              organization=$(yq -r '.organization' "$file" 2>/dev/null || echo "")
+            else
+              organization=$(jq -r '.organization' "$file" 2>/dev/null || echo "")
+            fi
+            
+            if [ -n "$organization" ]; then
+              echo "🏢 Checking organization: $organization"
+              
+              # Check if organization exists
+              result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim org get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$organization" 2>/dev/null || echo "")
+              
+              if ! echo "$result" | grep -q "$organization"; then
+                echo "❌ Organization '$organization' does not exist - will create it"
+                
+                # Look for organization config file
+                org_file="examples/Orgs/${organization,,}-org.json"
+                if [ -f "$org_file" ]; then
+                  echo "📁 Creating organization from: $org_file"
+                  
+                  # Extract and create organization
+                  org_name=$(jq -r '.name' "$org_file")
+                  org_description=$(jq -r '.description' "$org_file")
+                  org_email=$(jq -r '.email' "$org_file")
+                  org_phone=$(jq -r '.phone' "$org_file")
+                  org_enabled=$(jq -r '.enabled' "$org_file")
+                  org_development=$(jq -r '.development' "$org_file")
+                  
+                  docker run --name apim-cli \
+                  -e LOG_LEVEL=DEBUG \
+                  bvieira123/apim-cli:1.14.4 \
+                  apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+                  -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+                  --name "$org_name" \
+                  --description "$org_description" \
+                  --email "$org_email" \
+                  --phone "$org_phone" \
+                  --enabled "$org_enabled" \
+                  --development "$org_development"
+                  
+                  docker rm apim-cli -f
+                  echo "✅ Organization '$org_name' created successfully!"
+                else
+                  echo "❌ No organization config file found: $org_file"
+                  exit 1
+                fi
+              else
+                echo "✅ Organization '$organization' exists"
+              fi
+            fi
+          done
+
       - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''
         run: |

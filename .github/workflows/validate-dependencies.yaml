@@ -1,0 +1,194 @@
+name: Validate Dependencies
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "API config file to validate dependencies for"
+        type: string
+        required: true
+    outputs:
+      org-created:
+        description: "Whether organization was created"
+        value: ${{ jobs.validate_dependencies.outputs.org_created }}
+      apps-created:
+        description: "Whether applications were created"
+        value: ${{ jobs.validate_dependencies.outputs.apps_created }}
+
+jobs:
+  validate_dependencies:
+    runs-on: ubuntu-latest
+    environment: DEMO
+    outputs:
+      org_created: ${{ steps.org_validation.outputs.created }}
+      apps_created: ${{ steps.apps_validation.outputs.created }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Extract API information
+        id: api_info
+        run: |
+          config_file="${{ inputs.config-file }}"
+          
+          # Detect file type and extract information
+          if [[ "$config_file" == *.yaml ]] || [[ "$config_file" == *.yml ]]; then
+            # Use yq for YAML files
+            api_name=$(yq -r '.name' "$config_file" 2>/dev/null || echo "")
+            organization=$(yq -r '.organization' "$config_file" 2>/dev/null || echo "")
+            apps=$(yq -r '.applications[].name' "$config_file" 2>/dev/null || echo "")
+          else
+            # Use jq for JSON files
+            api_name=$(jq -r '.name' "$config_file" 2>/dev/null || echo "")
+            organization=$(jq -r '.organization' "$config_file" 2>/dev/null || echo "")
+            apps=$(jq -r '.applications[].name' "$config_file" 2>/dev/null || echo "")
+          fi
+          
+          if [ -z "$api_name" ] || [ -z "$organization" ]; then
+            echo "❌ Error: Could not extract API name or organization from config file"
+            exit 1
+          fi
+          
+          echo "📋 API Information:"
+          echo "  Name: $api_name"
+          echo "  Organization: $organization"
+          echo "  Applications: $apps"
+          
+          # Set outputs for next steps
+          echo "api_name=$api_name" >> $GITHUB_OUTPUT
+          echo "organization=$organization" >> $GITHUB_OUTPUT
+          echo "apps=$apps" >> $GITHUB_OUTPUT
+
+      - name: Validate and Create Organization
+        id: org_validation
+        run: |
+          organization="${{ steps.api_info.outputs.organization }}"
+          echo "🏢 Checking if organization '$organization' exists..."
+          
+          # Check if organization exists
+          result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim org get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$organization" 2>/dev/null || echo "")
+          
+          if echo "$result" | grep -q "$organization"; then
+            echo "✅ Organization '$organization' exists"
+            echo "created=false" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Organization '$organization' does not exist"
+            
+            # Look for organization config file in Orgs folder
+            org_file="examples/Orgs/${organization,,}-org.json"
+            if [ -f "$org_file" ]; then
+              echo "📁 Found organization config file: $org_file"
+              
+              # Extract organization info from config file
+              org_name=$(jq -r '.name' "$org_file")
+              org_description=$(jq -r '.description' "$org_file")
+              org_email=$(jq -r '.email' "$org_file")
+              org_phone=$(jq -r '.phone' "$org_file")
+              org_enabled=$(jq -r '.enabled' "$org_file")
+              org_development=$(jq -r '.development' "$org_file")
+              
+              echo "Creating organization: $org_name"
+              echo "Description: $org_description"
+              echo "Email: $org_email"
+              
+              docker run --name apim-cli \
+              -e LOG_LEVEL=DEBUG \
+              bvieira123/apim-cli:1.14.4 \
+              apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+              -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+              --name "$org_name" \
+              --description "$org_description" \
+              --email "$org_email" \
+              --phone "$org_phone" \
+              --enabled "$org_enabled" \
+              --development "$org_development"
+              
+              docker rm apim-cli -f
+              echo "✅ Organization '$org_name' created successfully!"
+              echo "created=true" >> $GITHUB_OUTPUT
+            else
+              echo "❌ No organization config file found for '$organization'"
+              echo "Expected file: $org_file"
+              echo "Available org files:"
+              ls -la examples/Orgs/ || echo "No Orgs folder found"
+              exit 1
+            fi
+          fi
+
+      - name: Validate and Create Applications
+        id: apps_validation
+        run: |
+          apps="${{ steps.api_info.outputs.apps }}"
+          apps_created=false
+          
+          if [ -n "$apps" ]; then
+            echo "📱 Found applications in config: $apps"
+            
+            for app_name in $apps; do
+              echo "🔍 Checking if application '$app_name' exists..."
+              
+              # Check if application exists
+              result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim app get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$app_name" 2>/dev/null || echo "")
+              
+              if echo "$result" | grep -q "$app_name"; then
+                echo "✅ Application '$app_name' exists"
+              else
+                echo "❌ Application '$app_name' does not exist"
+                
+                # Look for application config file in Apps folder
+                app_file="examples/Apps/${app_name,,}-app.json"
+                if [ -f "$app_file" ]; then
+                  echo "📁 Found application config file: $app_file"
+                  
+                  # Extract application info and create it
+                  app_org=$(jq -r '.organization' "$app_file")
+                  app_description=$(jq -r '.description' "$app_file")
+                  app_state=$(jq -r '.state' "$app_file")
+                  app_enabled=$(jq -r '.enabled' "$app_file")
+                  app_phone=$(jq -r '.phone' "$app_file")
+                  app_email=$(jq -r '.email' "$app_file")
+                  
+                  echo "Creating application: $app_name in organization: $app_org"
+                  
+                  docker run --name apim-cli \
+                  -e LOG_LEVEL=DEBUG \
+                  bvieira123/apim-cli:1.14.4 \
+                  apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+                  -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+                  --name "$app_name" \
+                  --org "$app_org" \
+                  --description "$app_description" \
+                  --state "$app_state" \
+                  --enabled "$app_enabled" \
+                  --phone "$app_phone" \
+                  --email "$app_email"
+                  
+                  docker rm apim-cli -f
+                  echo "✅ Application '$app_name' created successfully!"
+                  apps_created=true
+                else
+                  echo "⚠️ No application config file found for '$app_name'"
+                  echo "Expected file: $app_file"
+                  echo "Available app files:"
+                  ls -la examples/Apps/ || echo "No Apps folder found"
+                fi
+              fi
+            done
+          else
+            echo "📱 No applications found in config file"
+          fi
+          
+          echo "created=$apps_created" >> $GITHUB_OUTPUT
+
+      - name: Validation Summary
+        run: |
+          echo "🎉 Dependencies validation completed!"
+          echo "📋 Summary:"
+          echo "  Organization: ${{ steps.org_validation.outputs.created }}"
+          echo "  Applications: ${{ steps.apps_validation.outputs.created }}"
+          echo "  API: ${{ steps.api_info.outputs.api_name }}"
+          echo "  Config: ${{ inputs.config-file }}" 
