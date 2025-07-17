@@ -20,6 +20,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
 
       - name: Get changes
         run: |
@@ -59,7 +63,20 @@ jobs:
           
           for file in "${config_files[@]}"; do
             if [ -f "$file" ]; then
-              path=$(jq -r '.path' "$file")
+              # Detect file type and extract path accordingly
+              if [[ "$file" == *.yaml ]] || [[ "$file" == *.yml ]]; then
+                # Use yq for YAML files
+                path=$(yq -r '.path' "$file" 2>/dev/null || echo "")
+              else
+                # Use jq for JSON files
+                path=$(jq -r '.path' "$file" 2>/dev/null || echo "")
+              fi
+              
+              if [ -z "$path" ]; then
+                echo "Warning: Could not extract path from $file"
+                continue
+              fi
+              
               echo "Verificando existência da API com path: $path"
               result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim api get -h "$APIM_INSTANCE_IP" -u "$APIM_INSTANCE_USER" -port 8075 -p "$APIM_INSTANCE_PASSWORD" -a "$path" 2>/dev/null || echo "")
               if echo "$result" | grep -q "$path"; then
