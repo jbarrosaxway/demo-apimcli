@@ -105,6 +105,7 @@ jobs:
       - name: Update API
         if: steps.check_api.outputs.action == 'update' || inputs.force-update == 'true'
         id: update_api
+        continue-on-error: true
         run: |
           config_file="${{ inputs.config-file }}"
           config_file_name=$(basename "$config_file")
@@ -132,21 +133,20 @@ jobs:
           # Check if it's a real error (not code 10)
           if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
             echo "❌ API update failed with exit code: $EXIT_CODE"
-            echo "❌ Exiting with error due to real failure"
-            exit 1
+            echo "has_real_error=true" >> $GITHUB_OUTPUT
           else
             if [ $EXIT_CODE -eq 10 ]; then
               echo "✅ API updated successfully - No changes detected (exit code 10)"
             else
               echo "✅ API updated successfully"
             fi
-            echo "✅ Operation completed successfully"
-            exit 0
+            echo "has_real_error=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Import API
         if: steps.check_api.outputs.action == 'import' && inputs.force-update != 'true'
         id: import_api
+        continue-on-error: true
         run: |
           config_file="${{ inputs.config-file }}"
           config_file_name=$(basename "$config_file")
@@ -174,19 +174,23 @@ jobs:
           # Check if it's a real error (not code 10)
           if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
             echo "❌ API import failed with exit code: $EXIT_CODE"
-            echo "❌ Exiting with error due to real failure"
-            exit 1
+            echo "has_real_error=true" >> $GITHUB_OUTPUT
           else
             if [ $EXIT_CODE -eq 10 ]; then
               echo "✅ API imported successfully - No changes detected (exit code 10)"
             else
               echo "✅ API imported successfully"
             fi
-            echo "✅ Operation completed successfully"
-            exit 0
+            echo "has_real_error=false" >> $GITHUB_OUTPUT
           fi
-
-
+          
+      - name: Check for real errors
+        if: (steps.update_api.outputs.has_real_error == 'true' || steps.import_api.outputs.has_real_error == 'true')
+        run: |
+          echo "❌ API deployment failed with real errors. Check the logs above for details."
+          echo "💡 Note: Exit code 10 (No changes detected) is considered success."
+          echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
+          exit 1
           
       - name: Cleanup
         if: failure()

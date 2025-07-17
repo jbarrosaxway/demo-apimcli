@@ -133,6 +133,7 @@ jobs:
       - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''
         id: update_apis
+        continue-on-error: true
         run: |
           files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
           has_real_error=false
@@ -180,16 +181,21 @@ jobs:
           
           echo "All APIs updated successfully..."
           
-          # Exit with error only if there was a real error
+          # Set output to indicate if there was a real error
           if [ "$has_real_error" = true ]; then
-            echo "❌ Exiting with error due to real failures"
-            exit 1
+            echo "has_real_error=true" >> $GITHUB_OUTPUT
           else
-            echo "✅ All operations completed successfully"
-            exit 0
+            echo "has_real_error=false" >> $GITHUB_OUTPUT
           fi
           
-
+      - name: Check for real errors
+        if: env.UPDATE_CONFIG_FILES != '' && steps.update_apis.outputs.has_real_error == 'true'
+        run: |
+          echo "❌ Some API updates failed with real errors. Check the logs above for details."
+          echo "💡 Note: Exit code 10 (No changes detected) is considered success."
+          echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
+          exit 1
+          
   trigger_import:
     needs: update_api
     if: ${{ needs.update_api.outputs.IMPORT_CONFIG_FILES != '[]' && needs.update_api.outputs.IMPORT_CONFIG_FILES != '' }}
