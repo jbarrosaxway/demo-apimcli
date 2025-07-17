@@ -114,17 +114,31 @@ jobs:
           echo "📁 Config file: $config_file"
           echo "📄 Swagger file: $swagger_file"
           
-          # Mount both config and swagger files
+          # Mount the entire workspace to give container access to all files
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
-          -v "${{ github.workspace }}/$config_file:/$config_file_name" \
-          -v "${{ github.workspace }}/$current_folder/$swagger_file:/$swagger_file" \
+          -v "${{ github.workspace }}:/workspace" \
           bvieira123/apim-cli:1.14.4 \
           apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/$config_file_name" -force
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/workspace/$config_file" -force
           
+          # Capture the exit code
+          EXIT_CODE=$?
+          
+          # Clean up container
           docker rm apim-cli -f
-          echo "✅ API updated successfully!"
+          
+          # Handle exit codes: 0 = success, 10 = no changes (also success)
+          if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 10 ]; then
+            if [ $EXIT_CODE -eq 10 ]; then
+              echo "✅ API updated successfully - No changes detected (exit code 10)"
+            else
+              echo "✅ API updated successfully"
+            fi
+          else
+            echo "❌ API update failed with exit code: $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
 
       - name: Import API
         if: steps.check_api.outputs.action == 'import' && inputs.force-update != 'true'
@@ -138,17 +152,31 @@ jobs:
           echo "📁 Config file: $config_file"
           echo "📄 Swagger file: $swagger_file"
           
-          # Mount both config and swagger files
+          # Mount the entire workspace to give container access to all files
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
-          -v "${{ github.workspace }}/$config_file:/$config_file_name" \
-          -v "${{ github.workspace }}/$current_folder/$swagger_file:/$swagger_file" \
+          -v "${{ github.workspace }}:/workspace" \
           bvieira123/apim-cli:1.14.4 \
           apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/$config_file_name"
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/workspace/$config_file"
           
+          # Capture the exit code
+          EXIT_CODE=$?
+          
+          # Clean up container
           docker rm apim-cli -f
-          echo "✅ API imported successfully!"
+          
+          # Handle exit codes: 0 = success, 10 = no changes (also success)
+          if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 10 ]; then
+            if [ $EXIT_CODE -eq 10 ]; then
+              echo "✅ API imported successfully - No changes detected (exit code 10)"
+            else
+              echo "✅ API imported successfully"
+            fi
+          else
+            echo "❌ API import failed with exit code: $EXIT_CODE"
+            exit $EXIT_CODE
+          fi
 
       - name: Cleanup
         if: failure()
