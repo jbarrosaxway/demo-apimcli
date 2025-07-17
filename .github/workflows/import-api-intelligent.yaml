@@ -1,0 +1,84 @@
+name: import-api-intelligent
+on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "config file need to be imported"
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "config file need to be imported"
+        type: string
+        required: true
+
+jobs:
+  validate_dependencies:
+    uses: ./.github/workflows/validate-dependencies.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+    secrets: inherit
+
+  import_api:
+    needs: validate_dependencies
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+        
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: import api definitions with intelligent error handling
+        run: |
+          echo "Getting API definition..."
+          echo "Processing ${{ inputs.config-file }} config file"
+          config_file_name=$(basename ${{ inputs.config-file }})
+          current_folder=$(dirname ${{ inputs.config-file }})
+          
+          # Detect file type and extract API definition accordingly
+          if [[ "${{ inputs.config-file }}" == *.yaml ]] || [[ "${{ inputs.config-file }}" == *.yml ]]; then
+            # Use yq for YAML files
+            API_DEFINITION_FILE_NAME=$(yq -r '.apiSpecification.resource' ${{ inputs.config-file }} | xargs basename)
+            path=$(yq -r '.path' ${{ inputs.config-file }})
+          else
+            # Use jq for JSON files
+            API_DEFINITION_FILE_NAME=$(jq -r '.apiSpecification.resource' ${{ inputs.config-file }} | xargs basename)
+            path=$(jq -r '.path' ${{ inputs.config-file }})
+          fi
+          
+          echo "API definition: $API_DEFINITION_FILE_NAME"
+          echo "Importing API with apim-cli using config file: ${{ inputs.config-file }}"
+          echo "API path: $path"
+          
+          # Get the full path to the API definition file
+          API_DEFINITION_FULL_PATH=$(yq -r '.apiSpecification.resource' ${{ inputs.config-file }} 2>/dev/null || jq -r '.apiSpecification.resource' ${{ inputs.config-file }})
+          API_DEFINITION_DIR=$(dirname "$API_DEFINITION_FULL_PATH")
+          
+          # Mount the entire workspace to give container access to all files
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}:/workspace" bvieira123/apim-cli:1.14.4  \
+          apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
+          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/workspace/${{ inputs.config-file }}"
+          
+          # Capture the exit code
+          EXIT_CODE=$?
+          
+          # Clean up container
+          docker rm apim-cli -f
+          
+          # Use intelligent error handling
+          source scripts/error-handler.sh
+          handle_exit_code $EXIT_CODE "import"
+          
+          # Exit with the result from error handler
+          exit $?
+          
+      - name: Cleanup
+        if: failure()
+        run: |
+          docker rm apim-cli -f 
