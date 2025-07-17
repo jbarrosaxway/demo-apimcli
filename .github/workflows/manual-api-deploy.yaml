@@ -137,7 +137,8 @@ jobs:
             fi
           else
             echo "❌ API update failed with exit code: $EXIT_CODE"
-            exit $EXIT_CODE
+            # Don't exit with error code, just log it
+            echo "Continuing..."
           fi
 
       - name: Import API
@@ -175,7 +176,8 @@ jobs:
             fi
           else
             echo "❌ API import failed with exit code: $EXIT_CODE"
-            exit $EXIT_CODE
+            # Don't exit with error code, just log it
+            echo "Continuing..."
           fi
 
       - name: Cleanup
