@@ -172,35 +172,25 @@ jobs:
     steps:
       - name: Create Organization
         run: |
-          org_data='${{ needs.check_dependencies.outputs.org_data }}'
-          echo "🏢 Creating organization from config data"
+          org_file="${{ needs.check_dependencies.outputs.org_file }}"
+          echo "🏢 Creating organization from config file: $org_file"
           
-          # Extract organization info from JSON data
-          org_name=$(echo "$org_data" | jq -r '.name')
-          org_description=$(echo "$org_data" | jq -r '.description')
-          org_email=$(echo "$org_data" | jq -r '.email')
-          org_phone=$(echo "$org_data" | jq -r '.phone')
-          org_enabled=$(echo "$org_data" | jq -r '.enabled')
-          org_development=$(echo "$org_data" | jq -r '.development')
+          # Get the filename for docker mount
+          org_file_name=$(basename "$org_file")
+          org_file_dir=$(dirname "$org_file")
           
-          echo "Creating organization: $org_name"
-          echo "Description: $org_description"
-          echo "Email: $org_email"
+          echo "Importing organization using APIM CLI..."
           
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
+          -v "${{ github.workspace }}/$org_file:/$org_file_name" \
           bvieira123/apim-cli:1.14.4 \
-          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          apim org import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "$org_name" \
-          --description "$org_description" \
-          --email "$org_email" \
-          --phone "$org_phone" \
-          --enabled "$org_enabled" \
-          --development "$org_development"
+          -c "/$org_file_name"
           
           docker rm apim-cli -f
-          echo "✅ Organization '$org_name' created successfully!"
+          echo "✅ Organization imported successfully!"
 
   create_applications:
     needs: [check_dependencies, create_organization]
