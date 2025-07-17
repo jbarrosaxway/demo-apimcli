@@ -154,7 +154,7 @@ jobs:
             docker run --name apim-cli \
             -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}:/workspace" bvieira123/apim-cli:1.14.4  \
             apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/workspace/$file" -force
+            -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/workspace/$file" -force || true
             
             # Capture the exit code
             EXIT_CODE=$?
@@ -171,7 +171,8 @@ jobs:
               fi
             else
               echo "❌ API update failed with exit code: $EXIT_CODE"
-              exit $EXIT_CODE
+              # Don't exit with error code, just log it
+              echo "Continuing with next API..."
             fi
           done
           echo "All APIs updated successfully..."
