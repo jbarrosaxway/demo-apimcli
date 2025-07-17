@@ -15,12 +15,15 @@ on:
         value: ${{ jobs.validate_dependencies.outputs.apps_created }}
 
 jobs:
-  validate_dependencies:
+  check_dependencies:
     runs-on: ubuntu-latest
     environment: DEMO
     outputs:
-      org_created: ${{ steps.org_validation.outputs.created }}
-      apps_created: ${{ steps.apps_validation.outputs.created }}
+      org_exists: ${{ steps.check_org.outputs.exists }}
+      org_file: ${{ steps.check_org.outputs.org_file }}
+      org_data: ${{ steps.read_org_config.outputs.org_data }}
+      apps_to_create: ${{ steps.check_apps.outputs.apps_to_create }}
+      api_name: ${{ steps.api_info.outputs.api_name }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -104,38 +107,7 @@ jobs:
           org_data=$(jq -c '.' "$org_file")
           echo "org_data=$org_data" >> $GITHUB_OUTPUT
 
-      - name: Create Organization
-        if: steps.check_org.outputs.exists == 'false'
-        run: |
-          org_file="${{ steps.check_org.outputs.org_file }}"
-          echo "🏢 Creating organization from config file: $org_file"
-          
-          # Extract organization info from config file
-          org_name=$(jq -r '.name' "$org_file")
-          org_description=$(jq -r '.description' "$org_file")
-          org_email=$(jq -r '.email' "$org_file")
-          org_phone=$(jq -r '.phone' "$org_file")
-          org_enabled=$(jq -r '.enabled' "$org_file")
-          org_development=$(jq -r '.development' "$org_file")
-          
-          echo "Creating organization: $org_name"
-          echo "Description: $org_description"
-          echo "Email: $org_email"
-          
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          bvieira123/apim-cli:1.14.4 \
-          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "$org_name" \
-          --description "$org_description" \
-          --email "$org_email" \
-          --phone "$org_phone" \
-          --enabled "$org_enabled" \
-          --development "$org_development"
-          
-          docker rm apim-cli -f
-          echo "✅ Organization '$org_name' created successfully!"
+
 
       - name: Check Applications Exist
         id: check_apps
@@ -176,41 +148,7 @@ jobs:
           
           echo "apps_to_create=$apps_to_create" >> $GITHUB_OUTPUT
 
-      - name: Create Applications
-        if: steps.check_apps.outputs.apps_to_create != ''
-        run: |
-          apps_to_create="${{ steps.check_apps.outputs.apps_to_create }}"
-          
-          for app_file in $apps_to_create; do
-            echo "📱 Creating application from: $app_file"
-            
-            # Extract application info from config file
-            app_name=$(jq -r '.name' "$app_file")
-            app_org=$(jq -r '.organization' "$app_file")
-            app_description=$(jq -r '.description' "$app_file")
-            app_state=$(jq -r '.state' "$app_file")
-            app_enabled=$(jq -r '.enabled' "$app_file")
-            app_phone=$(jq -r '.phone' "$app_file")
-            app_email=$(jq -r '.email' "$app_file")
-            
-            echo "Creating application: $app_name in organization: $app_org"
-            
-            docker run --name apim-cli \
-            -e LOG_LEVEL=DEBUG \
-            bvieira123/apim-cli:1.14.4 \
-            apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-            -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-            --name "$app_name" \
-            --org "$app_org" \
-            --description "$app_description" \
-            --state "$app_state" \
-            --enabled "$app_enabled" \
-            --phone "$app_phone" \
-            --email "$app_email"
-            
-            docker rm apim-cli -f
-            echo "✅ Application '$app_name' created successfully!"
-          done
+
 
       - name: Validation Summary
         run: |
@@ -219,4 +157,36 @@ jobs:
           echo "  Organization: ${{ steps.check_org.outputs.exists }}"
           echo "  Applications: ${{ steps.check_apps.outputs.apps_to_create }}"
           echo "  API: ${{ steps.api_info.outputs.api_name }}"
-          echo "  Config: ${{ inputs.config-file }}" 
+          echo "  Config: ${{ inputs.config-file }}"
+
+  create_organization:
+    needs: check_dependencies
+    if: needs.check_dependencies.outputs.org_exists == 'false'
+    uses: ./.github/workflows/manage-organizations.yaml
+    with:
+      action: "create"
+      org-name: ${{ fromJSON(needs.check_dependencies.outputs.org_data).name }}
+      org-description: ${{ fromJSON(needs.check_dependencies.outputs.org_data).description }}
+      org-email: ${{ fromJSON(needs.check_dependencies.outputs.org_data).email }}
+      org-phone: ${{ fromJSON(needs.check_dependencies.outputs.org_data).phone }}
+      org-enabled: ${{ fromJSON(needs.check_dependencies.outputs.org_data).enabled }}
+      org-development: ${{ fromJSON(needs.check_dependencies.outputs.org_data).development }}
+    secrets: inherit
+
+  create_applications:
+    needs: [check_dependencies, create_organization]
+    if: needs.check_dependencies.outputs.apps_to_create != ''
+    strategy:
+      matrix:
+        app_file: ${{ fromJson(needs.check_dependencies.outputs.apps_to_create) }}
+    uses: ./.github/workflows/manage-applications.yaml
+    with:
+      action: "create"
+      app-name: ${{ fromJSON(matrix.app_file).name }}
+      org-name: ${{ fromJSON(matrix.app_file).organization }}
+      app-description: ${{ fromJSON(matrix.app_file).description }}
+      app-state: ${{ fromJSON(matrix.app_file).state }}
+      app-enabled: ${{ fromJSON(matrix.app_file).enabled }}
+      app-phone: ${{ fromJSON(matrix.app_file).phone }}
+      app-email: ${{ fromJSON(matrix.app_file).email }}
+    secrets: inherit 
