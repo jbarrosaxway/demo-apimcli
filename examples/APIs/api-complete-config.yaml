@@ -34,19 +34,7 @@ securityProfiles:
           apiKeyFieldName: KeyId
           takeFrom: HEADER
           removeCredentialsOnSuccess: true
-caCerts:
-  - certFile: swagger.io.crt
-    inbound: false
-    outbound: true
-  - certFile: Amazon.crt
-    inbound: false
-    outbound: true
-  - certFile: AmazonRootCA1.crt
-    inbound: false
-    outbound: true
-  - certFile: StarfieldServicesRootCertificateAuthority-G2.crt
-    inbound: false
-    outbound: true
+
 applicationQuota:
   restrictions:
     - method: "*"
