@@ -170,6 +170,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: DEMO
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
       - name: Create Organization
         run: |
           org_file="${{ needs.check_dependencies.outputs.org_file }}"
