@@ -19,14 +19,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: setup python
-        uses: actions/setup-python@v4
-        with:
-          python-version: "3.x"
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r ./requirements.txt
+
 
       - name: Get changes
         run: |
@@ -34,15 +27,10 @@ jobs:
           echo "CHANGES=$CHANGES" >> $GITHUB_ENV
           echo "CHANGES: $CHANGES"
 
-      - name: Get Config Files
-        env:
-          CHANGES: ${{ env.CHANGES }}
-        run: python ./pyscripts/get-config-files.py
-
-      - name: Check if config file is new or is an update
+      - name: Get Config Files and Check API Status
         id: define_matrix_config_files
         env:
-          CONFIG_FILES: ${{ env.CONFIG_FILES }}
+          CHANGES: ${{ env.CHANGES }}
           APIM_INSTANCE_IP: ${{ vars.APIM_INSTANCE_IP }}
           APIM_INSTANCE_USER: ${{ vars.APIM_INSTANCE_USER }}
           APIM_INSTANCE_PASSWORD: ${{ secrets.APIM_INSTANCE_PASSWORD }}
@@ -50,16 +38,42 @@ jobs:
           set -e
           UPDATE_CONFIG_FILES=()
           IMPORT_CONFIG_FILES=()
-          for file in $(echo $CONFIG_FILES | jq -r '.[]'); do
-            path=$(jq -r '.path' "$file")
-            echo "Verificando existência da API com path: $path"
-            result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim api get -h "$APIM_INSTANCE_IP" -u "$APIM_INSTANCE_USER" -port 8075 -p "$APIM_INSTANCE_PASSWORD" -a "$path")
-            if echo "$result" | grep -q "$path"; then
-              UPDATE_CONFIG_FILES+=("$file")
-            else
-              IMPORT_CONFIG_FILES+=("$file")
+          
+          # Extract config files from changes
+          config_files=()
+          for file in $(echo "$CHANGES" | tr ',' ' '); do
+            if [[ "$file" == *"-config"* ]]; then
+              config_files+=("$file")
             fi
           done
+          
+          if [ ${#config_files[@]} -eq 0 ]; then
+            echo "No config files found in changes"
+            echo "UPDATE_CONFIG_FILES=[]" >> $GITHUB_ENV
+            echo "IMPORT_CONFIG_FILES=[]" >> $GITHUB_ENV
+            echo "IMPORT_CONFIG_FILES=[]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "Found ${#config_files[@]} config files: ${config_files[*]}"
+          
+          for file in "${config_files[@]}"; do
+            if [ -f "$file" ]; then
+              path=$(jq -r '.path' "$file")
+              echo "Verificando existência da API com path: $path"
+              result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim api get -h "$APIM_INSTANCE_IP" -u "$APIM_INSTANCE_USER" -port 8075 -p "$APIM_INSTANCE_PASSWORD" -a "$path" 2>/dev/null || echo "")
+              if echo "$result" | grep -q "$path"; then
+                UPDATE_CONFIG_FILES+=("$file")
+                echo "API exists - will update: $file"
+              else
+                IMPORT_CONFIG_FILES+=("$file")
+                echo "API does not exist - will import: $file"
+              fi
+            else
+              echo "Warning: File not found: $file"
+            fi
+          done
+          
           echo "UPDATE_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${UPDATE_CONFIG_FILES[@]}")" >> $GITHUB_ENV
           echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_ENV
           echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_OUTPUT

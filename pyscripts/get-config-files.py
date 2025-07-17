@@ -29,6 +29,7 @@ def process_api_definition(file_path):
               found_api_definition_file = utils.get_field_by_json_path(file_path, "$.apiSpecification.resource")[0].value
               if file_name in found_api_definition_file:
                   return f"{directory}/{file}"
+  return None
 
 
 for file in file_list:
@@ -37,6 +38,8 @@ for file in file_list:
     conf_files_list.append(file)
   else:
     print(f"Processing API definition file")
-    add_in_conf_files_list(process_api_definition(file))
+    result = process_api_definition(file)
+    if result is not None:
+        add_in_conf_files_list(result)
 
 export_env('CONFIG_FILES', json.dumps(conf_files_list))
