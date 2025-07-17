@@ -62,6 +62,7 @@ on:
 jobs:
   import_api:
     if: inputs.action == 'import'
+    environment: DEMO
     uses: ./.github/workflows/import-api.yaml
     with:
       config-file: ${{ inputs.config-file }}
@@ -69,6 +70,7 @@ jobs:
 
   configure_security:
     if: inputs.action == 'security'
+    environment: DEMO
     uses: ./.github/workflows/configure-api-security.yaml
     with:
       config-file: ${{ inputs.config-file }}
@@ -77,6 +79,7 @@ jobs:
 
   manage_org_permissions:
     if: inputs.action == 'permissions' && inputs.organization != ''
+    environment: DEMO
     uses: ./.github/workflows/manage-organization-permissions.yaml
     with:
       config-file: ${{ inputs.config-file }}
@@ -86,6 +89,7 @@ jobs:
 
   manage_app_subscriptions:
     if: inputs.action == 'subscriptions' && inputs.application != '' && inputs.organization != ''
+    environment: DEMO
     uses: ./.github/workflows/manage-application-subscriptions.yaml
     with:
       config-file: ${{ inputs.config-file }}

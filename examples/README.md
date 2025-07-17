@@ -128,12 +128,21 @@ gh workflow run manage-api-lifecycle.yaml \
 
 Certifique-se de que as seguintes variáveis estejam configuradas no seu repositório:
 
-### Secrets
+### Ambiente DEMO
+Todos os workflows estão configurados para usar o ambiente `DEMO`. Configure as seguintes variáveis neste ambiente:
+
+#### Secrets (Settings > Secrets and variables > Actions > Environments > DEMO > Secrets)
 - `APIM_INSTANCE_PASSWORD`: Senha do usuário APIM
 
-### Variables
+#### Variables (Settings > Secrets and variables > Actions > Environments > DEMO > Variables)
 - `APIM_INSTANCE_IP`: IP da instância APIM
 - `APIM_INSTANCE_USER`: Usuário APIM
+
+### Como Configurar o Ambiente DEMO
+1. Vá para **Settings > Secrets and variables > Actions**
+2. Clique em **Environments**
+3. Clique em **DEMO** (ou crie se não existir)
+4. Configure as **Variables** e **Secrets** listadas acima
 
 ## Estrutura de Arquivos
 

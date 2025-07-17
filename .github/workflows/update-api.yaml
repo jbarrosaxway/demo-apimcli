@@ -12,6 +12,7 @@ env:
 jobs:
   update_api:
     runs-on: ubuntu-latest
+    environment: DEMO
     outputs:
       IMPORT_CONFIG_FILES: ${{ steps.define_matrix_config_files.outputs.IMPORT_CONFIG_FILES }}
     steps:

@@ -26,6 +26,7 @@ on:
 jobs:
   configure_security:
     runs-on: ubuntu-latest
+    environment: DEMO
     steps:
       - name: Checkout
         uses: actions/checkout@v4
