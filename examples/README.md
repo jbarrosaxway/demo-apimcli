@@ -84,6 +84,18 @@ with:
   permission-action: "grant"
 ```
 
+### 5. Manual API Deploy (`manual-api-deploy.yaml`)
+Workflow manual para deploy de API específica:
+```yaml
+# Via GitHub CLI
+gh workflow run manual-api-deploy.yaml \
+  -f config-file="examples/api-with-apikey-config.json" \
+  -f force-update=false
+
+# Via GitHub Web Interface
+# Actions > Manual API Deploy > Run workflow
+```
+
 ## Como Usar
 
 ### 1. Importar uma API
@@ -124,6 +136,18 @@ gh workflow run manage-api-lifecycle.yaml \
   -f permission-action="grant"
 ```
 
+### 5. Deploy Manual de API
+```bash
+# Deploy normal (import se não existir, update se existir)
+gh workflow run manual-api-deploy.yaml \
+  -f config-file="examples/api-with-apikey-config.json"
+
+# Forçar update (sempre atualizar)
+gh workflow run manual-api-deploy.yaml \
+  -f config-file="examples/api-with-apikey-config.json" \
+  -f force-update=true
+```
+
 ## Variáveis de Ambiente Necessárias
 
 Certifique-se de que as seguintes variáveis estejam configuradas no seu repositório:
@@ -153,7 +177,8 @@ Todos os workflows estão configurados para usar o ambiente `DEMO`. Configure as
 ├── configure-api-security.yaml        # Configurar segurança
 ├── manage-organization-permissions.yaml # Gerenciar permissões de org
 ├── manage-application-subscriptions.yaml # Gerenciar assinaturas de app
-└── manage-api-lifecycle.yaml          # Workflow principal integrado
+├── manage-api-lifecycle.yaml          # Workflow principal integrado
+└── manual-api-deploy.yaml             # Deploy manual de API específica
 
 examples/
 ├── README.md                          # Esta documentação

@@ -1,0 +1,151 @@
+name: Manual API Deploy
+on:
+  workflow_dispatch:
+    inputs:
+      config-file:
+        description: "Caminho completo do arquivo de configuração (ex: examples/api-with-apikey-config.json)"
+        type: string
+        required: true
+      force-update:
+        description: "Forçar atualização mesmo se a API não existir"
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  deploy_api:
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
+      - name: Validate config file
+        run: |
+          if [ ! -f "${{ inputs.config-file }}" ]; then
+            echo "❌ Error: Config file '${{ inputs.config-file }}' not found!"
+            exit 1
+          fi
+          echo "✅ Config file found: ${{ inputs.config-file }}"
+
+      - name: Extract API information
+        id: api_info
+        run: |
+          config_file="${{ inputs.config-file }}"
+          
+          # Detect file type and extract information
+          if [[ "$config_file" == *.yaml ]] || [[ "$config_file" == *.yml ]]; then
+            # Use yq for YAML files
+            api_name=$(yq -r '.name' "$config_file" 2>/dev/null || echo "")
+            api_path=$(yq -r '.path' "$config_file" 2>/dev/null || echo "")
+            api_version=$(yq -r '.version' "$config_file" 2>/dev/null || echo "")
+            swagger_file=$(yq -r '.apiSpecification.resource' "$config_file" 2>/dev/null || echo "")
+          else
+            # Use jq for JSON files
+            api_name=$(jq -r '.name' "$config_file" 2>/dev/null || echo "")
+            api_path=$(jq -r '.path' "$config_file" 2>/dev/null || echo "")
+            api_version=$(jq -r '.version' "$config_file" 2>/dev/null || echo "")
+            swagger_file=$(jq -r '.apiSpecification.resource' "$config_file" 2>/dev/null || echo "")
+          fi
+          
+          if [ -z "$api_name" ] || [ -z "$api_path" ]; then
+            echo "❌ Error: Could not extract API name or path from config file"
+            exit 1
+          fi
+          
+          echo "📋 API Information:"
+          echo "  Name: $api_name"
+          echo "  Path: $api_path"
+          echo "  Version: $api_version"
+          echo "  Swagger: $swagger_file"
+          
+          # Set outputs for next steps
+          echo "api_name=$api_name" >> $GITHUB_OUTPUT
+          echo "api_path=$api_path" >> $GITHUB_OUTPUT
+          echo "api_version=$api_version" >> $GITHUB_OUTPUT
+          echo "swagger_file=$swagger_file" >> $GITHUB_OUTPUT
+
+      - name: Check if API exists
+        id: check_api
+        run: |
+          api_path="${{ steps.api_info.outputs.api_path }}"
+          echo "🔍 Checking if API with path '$api_path' exists..."
+          
+          result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim api get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -a "$api_path" 2>/dev/null || echo "")
+          
+          if echo "$result" | grep -q "$api_path"; then
+            echo "✅ API exists - will UPDATE"
+            echo "action=update" >> $GITHUB_OUTPUT
+          else
+            echo "🆕 API does not exist - will IMPORT"
+            echo "action=import" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update API
+        if: steps.check_api.outputs.action == 'update' || inputs.force-update == 'true'
+        run: |
+          config_file="${{ inputs.config-file }}"
+          config_file_name=$(basename "$config_file")
+          current_folder=$(dirname "$config_file")
+          swagger_file="${{ steps.api_info.outputs.swagger_file }}"
+          
+          echo "🔄 Updating API: ${{ steps.api_info.outputs.api_name }}"
+          echo "📁 Config file: $config_file"
+          echo "📄 Swagger file: $swagger_file"
+          
+          # Mount both config and swagger files
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          -v "${{ github.workspace }}/$config_file:/$config_file_name" \
+          -v "${{ github.workspace }}/$current_folder/$swagger_file:/$swagger_file" \
+          bvieira123/apim-cli:1.14.4 \
+          apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/$config_file_name" -force
+          
+          docker rm apim-cli -f
+          echo "✅ API updated successfully!"
+
+      - name: Import API
+        if: steps.check_api.outputs.action == 'import' && inputs.force-update != 'true'
+        run: |
+          config_file="${{ inputs.config-file }}"
+          config_file_name=$(basename "$config_file")
+          current_folder=$(dirname "$config_file")
+          swagger_file="${{ steps.api_info.outputs.swagger_file }}"
+          
+          echo "📥 Importing API: ${{ steps.api_info.outputs.api_name }}"
+          echo "📁 Config file: $config_file"
+          echo "📄 Swagger file: $swagger_file"
+          
+          # Mount both config and swagger files
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          -v "${{ github.workspace }}/$config_file:/$config_file_name" \
+          -v "${{ github.workspace }}/$current_folder/$swagger_file:/$swagger_file" \
+          bvieira123/apim-cli:1.14.4 \
+          apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/$config_file_name"
+          
+          docker rm apim-cli -f
+          echo "✅ API imported successfully!"
+
+      - name: Cleanup
+        if: failure()
+        run: |
+          docker rm apim-cli -f
+
+      - name: Success Summary
+        if: success()
+        run: |
+          echo "🎉 Deployment completed successfully!"
+          echo "📋 Summary:"
+          echo "  API: ${{ steps.api_info.outputs.api_name }}"
+          echo "  Path: ${{ steps.api_info.outputs.api_path }}"
+          echo "  Version: ${{ steps.api_info.outputs.api_version }}"
+          echo "  Action: ${{ steps.check_api.outputs.action }}"
+          echo "  Config: ${{ inputs.config-file }}" 
