@@ -4,5 +4,5 @@
   "email": "partners@company.com",
   "phone": "+1234567891",
   "enabled": true,
-  "development": false
+  "development": true
 } 
