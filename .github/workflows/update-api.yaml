@@ -10,7 +10,18 @@ env:
   GITHUB_ENV: $GITHUB_ENV
   GITHUB_OUTPUT: $GITHUB_OUTPUT
 jobs:
+  validate_dependencies:
+    if: env.UPDATE_CONFIG_FILES != ''
+    strategy:
+      matrix:
+        UPDATE_CONFIG_FILE: ${{fromJson(env.UPDATE_CONFIG_FILES)}}
+    uses: ./.github/workflows/validate-dependencies.yaml
+    with:
+      config-file: ${{ matrix.UPDATE_CONFIG_FILE }}
+    secrets: inherit
+
   update_api:
+    needs: validate_dependencies
     runs-on: ubuntu-latest
     environment: DEMO
     outputs:
@@ -128,12 +139,7 @@ jobs:
           echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_ENV
           echo "IMPORT_CONFIG_FILES=$(jq -c -n '$ARGS.positional' --args "${IMPORT_CONFIG_FILES[@]}")" >> $GITHUB_OUTPUT
 
-      - name: Validate Dependencies for Updates
-        if: env.UPDATE_CONFIG_FILES != ''
-        uses: ./.github/workflows/validate-dependencies.yaml
-        with:
-          config-file: ${{ matrix.UPDATE_CONFIG_FILE }}
-        secrets: inherit
+
 
       - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''

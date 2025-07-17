@@ -13,7 +13,14 @@ on:
         default: false
 
 jobs:
+  validate_dependencies:
+    uses: ./.github/workflows/validate-dependencies.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+    secrets: inherit
+
   deploy_api:
+    needs: validate_dependencies
     runs-on: ubuntu-latest
     environment: DEMO
     steps:
@@ -79,15 +86,8 @@ jobs:
           echo "organization=$organization" >> $GITHUB_OUTPUT
           echo "swagger_file=$swagger_file" >> $GITHUB_OUTPUT
 
-      - name: Validate Dependencies
-        uses: ./.github/workflows/validate-dependencies.yaml
-        with:
-          config-file: ${{ inputs.config-file }}
-        secrets: inherit
-
       - name: Check if API exists
         id: check_api
-        needs: [validate_dependencies]
         run: |
           api_path="${{ steps.api_info.outputs.api_path }}"
           echo "🔍 Checking if API with path '$api_path' exists..."
@@ -168,5 +168,5 @@ jobs:
           echo "  Config: ${{ inputs.config-file }}"
           echo ""
           echo "✅ Dependencies checked and created:"
-          echo "  - Organization: ${{ steps.check_org.outputs.org_exists }}"
+          echo "  - Organization: Validated and created if needed"
           echo "  - Applications: Checked and created if needed" 
