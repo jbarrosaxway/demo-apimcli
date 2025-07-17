@@ -75,10 +75,8 @@ jobs:
           # Check if organization exists
           result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim org get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$organization" 2>/dev/null || echo "")
           
-          if echo "$result" | grep -q "$organization"; then
-            echo "✅ Organization '$organization' exists"
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
+          # Check if the result contains any 'not found' message or is empty
+          if echo "$result" | grep -E -q "No organizations found|No organizations found based on the given criteria" || [ -z "$result" ]; then
             echo "❌ Organization '$organization' does not exist"
             echo "exists=false" >> $GITHUB_OUTPUT
             
@@ -94,6 +92,9 @@ jobs:
               ls -la examples/Orgs/ || echo "No Orgs folder found"
               exit 1
             fi
+          else
+            echo "✅ Organization '$organization' exists"
+            echo "exists=true" >> $GITHUB_OUTPUT
           fi
 
       - name: Read Organization Config
@@ -126,9 +127,8 @@ jobs:
                 # Check if application exists
                 result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim app get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$app_name" 2>/dev/null || echo "")
                 
-                if echo "$result" | grep -q "$app_name"; then
-                  echo "✅ Application '$app_name' exists"
-                else
+                # Check if the result contains any 'not found' message or is empty
+                if echo "$result" | grep -E -q "No applications found|No applications found based on the given filters" || [ -z "$result" ]; then
                   echo "❌ Application '$app_name' does not exist"
                   
                   # Look for application config file in Apps folder
@@ -142,6 +142,8 @@ jobs:
                     echo "Available app files:"
                     ls -la examples/Apps/ || echo "No Apps folder found"
                   fi
+                else
+                  echo "✅ Application '$app_name' exists"
                 fi
               fi
             done
