@@ -166,16 +166,36 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Organization
-        uses: ./.github/workflows/manage-organizations.yaml
-        with:
-          action: "create"
-          org-name: ${{ fromJSON(needs.check_dependencies.outputs.org_data).name }}
-          org-description: ${{ fromJSON(needs.check_dependencies.outputs.org_data).description }}
-          org-email: ${{ fromJSON(needs.check_dependencies.outputs.org_data).email }}
-          org-phone: ${{ fromJSON(needs.check_dependencies.outputs.org_data).phone }}
-          org-enabled: ${{ fromJSON(needs.check_dependencies.outputs.org_data).enabled }}
-          org-development: ${{ fromJSON(needs.check_dependencies.outputs.org_data).development }}
-        secrets: inherit
+        run: |
+          org_data="${{ needs.check_dependencies.outputs.org_data }}"
+          echo "🏢 Creating organization from config data"
+          
+          # Extract organization info from JSON data
+          org_name=$(echo "$org_data" | jq -r '.name')
+          org_description=$(echo "$org_data" | jq -r '.description')
+          org_email=$(echo "$org_data" | jq -r '.email')
+          org_phone=$(echo "$org_data" | jq -r '.phone')
+          org_enabled=$(echo "$org_data" | jq -r '.enabled')
+          org_development=$(echo "$org_data" | jq -r '.development')
+          
+          echo "Creating organization: $org_name"
+          echo "Description: $org_description"
+          echo "Email: $org_email"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "$org_name" \
+          --description "$org_description" \
+          --email "$org_email" \
+          --phone "$org_phone" \
+          --enabled "$org_enabled" \
+          --development "$org_development"
+          
+          docker rm apim-cli -f
+          echo "✅ Organization '$org_name' created successfully!"
 
   create_applications:
     needs: [check_dependencies, create_organization]

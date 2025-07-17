@@ -106,16 +106,23 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Organization
-        uses: ./.github/workflows/manage-organizations.yaml
-        with:
-          action: "create"
-          org-name: ${{ needs.read_org_config.outputs.org-name }}
-          org-description: ${{ needs.read_org_config.outputs.org-description }}
-          org-email: ${{ needs.read_org_config.outputs.org-email }}
-          org-phone: ${{ needs.read_org_config.outputs.org-phone }}
-          org-enabled: ${{ needs.read_org_config.outputs.org-enabled }}
-          org-development: ${{ needs.read_org_config.outputs.org-development }}
-        secrets: inherit
+        run: |
+          echo "🏢 Creating organization: ${{ needs.read_org_config.outputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ needs.read_org_config.outputs.org-name }}" \
+          --description "${{ needs.read_org_config.outputs.org-description }}" \
+          --email "${{ needs.read_org_config.outputs.org-email }}" \
+          --phone "${{ needs.read_org_config.outputs.org-phone }}" \
+          --enabled "${{ needs.read_org_config.outputs.org-enabled }}" \
+          --development "${{ needs.read_org_config.outputs.org-development }}"
+          
+          docker rm apim-cli -f
+          echo "✅ Organization created successfully!"
 
   create_application:
     needs: [read_app_config, create_organization]
@@ -130,17 +137,25 @@ jobs:
           echo "Using organization: $ORG_NAME"
       
       - name: Create Application
-        uses: ./.github/workflows/manage-applications.yaml
-        with:
-          action: "create"
-          app-name: ${{ needs.read_app_config.outputs.app-name }}
-          org-name: ${{ steps.org_name.outputs.org-name }}
-          app-description: ${{ needs.read_app_config.outputs.app-description }}
-          app-state: ${{ needs.read_app_config.outputs.app-state }}
-          app-enabled: ${{ needs.read_app_config.outputs.app-enabled }}
-          app-phone: ${{ needs.read_app_config.outputs.app-phone }}
-          app-email: ${{ needs.read_app_config.outputs.app-email }}
-        secrets: inherit
+        run: |
+          echo "📱 Creating application: ${{ needs.read_app_config.outputs.app-name }}"
+          echo "🏢 Organization: ${{ steps.org_name.outputs.org-name }}"
+          
+          docker run --name apim-cli \
+          -e LOG_LEVEL=DEBUG \
+          bvieira123/apim-cli:1.14.4 \
+          apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
+          --name "${{ needs.read_app_config.outputs.app-name }}" \
+          --org "${{ steps.org_name.outputs.org-name }}" \
+          --description "${{ needs.read_app_config.outputs.app-description }}" \
+          --state "${{ needs.read_app_config.outputs.app-state }}" \
+          --enabled "${{ needs.read_app_config.outputs.app-enabled }}" \
+          --phone "${{ needs.read_app_config.outputs.app-phone }}" \
+          --email "${{ needs.read_app_config.outputs.app-email }}"
+          
+          docker rm apim-cli -f
+          echo "✅ Application created successfully!"
 
   deploy_api:
     needs: create_application
