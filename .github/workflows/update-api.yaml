@@ -133,9 +133,10 @@ jobs:
       - name: Update APIs
         if: env.UPDATE_CONFIG_FILES != ''
         id: update_apis
-        continue-on-error: true
         run: |
           files=$(echo '${{ env.UPDATE_CONFIG_FILES }}' | jq -r '.[]')
+          has_real_error=false
+          
           for file in $files; do
             echo "Getting API definition..."
             config_file_name=$(basename "$file")
@@ -166,22 +167,29 @@ jobs:
             # Clean up container
             docker rm apim-cli -f
             
-            # Use intelligent error handling
+            # Check if it's a real error (not code 10)
+            if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
+              echo "❌ Real error detected: Exit code $EXIT_CODE"
+              has_real_error=true
+            fi
+            
+            # Use intelligent error handling for logging
             source scripts/error-handler.sh
             handle_exit_code $EXIT_CODE "update"
-            
-            # Exit with the result from error handler
-            exit $?
           done
+          
           echo "All APIs updated successfully..."
           
-      - name: Check for real errors
-        if: env.UPDATE_CONFIG_FILES != '' && steps.update_apis.outcome == 'failure'
-        run: |
-          echo "❌ Some API updates failed. Check the logs above for details."
-          echo "💡 Note: Exit code 10 (No changes detected) is considered success."
-          echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
-          exit 1
+          # Exit with error only if there was a real error
+          if [ "$has_real_error" = true ]; then
+            echo "❌ Exiting with error due to real failures"
+            exit 1
+          else
+            echo "✅ All operations completed successfully"
+            exit 0
+          fi
+          
+
   trigger_import:
     needs: update_api
     if: ${{ needs.update_api.outputs.IMPORT_CONFIG_FILES != '[]' && needs.update_api.outputs.IMPORT_CONFIG_FILES != '' }}

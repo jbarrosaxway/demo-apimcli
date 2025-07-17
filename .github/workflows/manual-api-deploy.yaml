@@ -105,7 +105,6 @@ jobs:
       - name: Update API
         if: steps.check_api.outputs.action == 'update' || inputs.force-update == 'true'
         id: update_api
-        continue-on-error: true
         run: |
           config_file="${{ inputs.config-file }}"
           config_file_name=$(basename "$config_file")
@@ -130,23 +129,24 @@ jobs:
           # Clean up container
           docker rm apim-cli -f
           
-          # Handle exit codes: 0 = success, 10 = no changes (also success)
-          if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 10 ]; then
+          # Check if it's a real error (not code 10)
+          if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
+            echo "❌ API update failed with exit code: $EXIT_CODE"
+            echo "❌ Exiting with error due to real failure"
+            exit 1
+          else
             if [ $EXIT_CODE -eq 10 ]; then
               echo "✅ API updated successfully - No changes detected (exit code 10)"
             else
               echo "✅ API updated successfully"
             fi
-          else
-            echo "❌ API update failed with exit code: $EXIT_CODE"
-            # Don't exit with error code, just log it
-            echo "Continuing..."
+            echo "✅ Operation completed successfully"
+            exit 0
           fi
 
       - name: Import API
         if: steps.check_api.outputs.action == 'import' && inputs.force-update != 'true'
         id: import_api
-        continue-on-error: true
         run: |
           config_file="${{ inputs.config-file }}"
           config_file_name=$(basename "$config_file")
@@ -171,26 +171,22 @@ jobs:
           # Clean up container
           docker rm apim-cli -f
           
-          # Handle exit codes: 0 = success, 10 = no changes (also success)
-          if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 10 ]; then
+          # Check if it's a real error (not code 10)
+          if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
+            echo "❌ API import failed with exit code: $EXIT_CODE"
+            echo "❌ Exiting with error due to real failure"
+            exit 1
+          else
             if [ $EXIT_CODE -eq 10 ]; then
               echo "✅ API imported successfully - No changes detected (exit code 10)"
             else
               echo "✅ API imported successfully"
             fi
-          else
-            echo "❌ API import failed with exit code: $EXIT_CODE"
-            # Don't exit with error code, just log it
-            echo "Continuing..."
+            echo "✅ Operation completed successfully"
+            exit 0
           fi
 
-      - name: Check for real errors
-        if: (steps.update_api.outcome == 'failure' || steps.import_api.outcome == 'failure')
-        run: |
-          echo "❌ API deployment failed. Check the logs above for details."
-          echo "💡 Note: Exit code 10 (No changes detected) is considered success."
-          echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
-          exit 1
+
           
       - name: Cleanup
         if: failure()
