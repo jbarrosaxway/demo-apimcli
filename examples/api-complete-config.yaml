@@ -13,7 +13,7 @@ inboundProfiles:
     queryStringPassThrough: false
     monitorSubject: authentication.subject.id
     securityProfile: _default
-    corsProfile: _default
+    corsProfile: _default 
   createUser:
     monitorAPI: true
     queryStringPassThrough: false
