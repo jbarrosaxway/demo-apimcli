@@ -164,18 +164,12 @@ jobs:
             # Clean up container
             docker rm apim-cli -f
             
-            # Handle exit codes: 0 = success, 10 = no changes (also success)
-            if [ $EXIT_CODE -eq 0 ] || [ $EXIT_CODE -eq 10 ]; then
-              if [ $EXIT_CODE -eq 10 ]; then
-                echo "✅ API updated successfully - No changes detected (exit code 10)"
-              else
-                echo "✅ API updated successfully"
-              fi
-            else
-              echo "❌ API update failed with exit code: $EXIT_CODE"
-              # Don't exit with error code, just log it
-              echo "Continuing with next API..."
-            fi
+            # Use intelligent error handling
+            source scripts/error-handler.sh
+            handle_exit_code $EXIT_CODE "update"
+            
+            # Exit with the result from error handler
+            exit $?
           done
           echo "All APIs updated successfully..."
   trigger_import:
@@ -184,7 +178,7 @@ jobs:
     strategy:
       matrix:
         IMPORT_CONFIG_FILE: ${{fromJson(needs.update_api.outputs.IMPORT_CONFIG_FILES)}}
-    uses: ./.github/workflows/import-api.yaml
+    uses: ./.github/workflows/import-api-intelligent.yaml
     with:
       config-file: ${{ matrix.IMPORT_CONFIG_FILE }}
     secrets: inherit
