@@ -18,8 +18,9 @@
       "corsProfile": "_default"
     }
   },
-  "securityProfiles": {
-    "production-oauth": {
+  "securityProfiles": [
+    {
+      "name": "production-oauth",
       "devices": [
         {
           "name": "OAuth",
@@ -34,7 +35,7 @@
         }
       ]
     }
-  },
+  ],
   "clientOrganizations": [
     "Production"
   ],
