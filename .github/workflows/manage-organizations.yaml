@@ -106,19 +106,28 @@ jobs:
         run: |
           echo "🔄 Updating organization: ${{ inputs.org-name }}"
           
+          # Create temporary config file for the organization
+          cat > /tmp/org-update.json << EOF
+          {
+            "name": "${{ inputs.org-name }}",
+            "description": "${{ inputs.org-description }}",
+            "email": "${{ inputs.org-email }}",
+            "phone": "${{ inputs.org-phone }}",
+            "enabled": ${{ inputs.org-enabled }},
+            "development": ${{ inputs.org-development }}
+          }
+          EOF
+          
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
+          -v /tmp/org-update.json:/org-update.json \
           bvieira123/apim-cli:1.14.4 \
-          apim org update -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          apim org import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "${{ inputs.org-name }}" \
-          --description "${{ inputs.org-description }}" \
-          --email "${{ inputs.org-email }}" \
-          --phone "${{ inputs.org-phone }}" \
-          --enabled "${{ inputs.org-enabled }}" \
-          --development "${{ inputs.org-development }}"
+          -c "/org-update.json"
           
           docker rm apim-cli -f
+          rm -f /tmp/org-update.json
           echo "✅ Organization updated successfully!"
 
       - name: Delete Organization
