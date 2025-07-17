@@ -132,7 +132,9 @@ jobs:
                   echo "❌ Application '$app_name' does not exist"
                   
                   # Look for application config file in Apps folder
-                  app_file="examples/Apps/${app_name,,}-app.json"
+                  # Convert spaces to hyphens and make lowercase
+                  app_file_name=$(echo "$app_name" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+                  app_file="examples/Apps/${app_file_name}-app.json"
                   if [ -f "$app_file" ]; then
                     echo "📁 Found application config file: $app_file"
                     apps_to_create="$apps_to_create $app_file"

@@ -19,8 +19,6 @@ inboundProfiles:
     queryStringPassThrough: false
 outboundProfiles:
   _default:
-    requestPolicy: Validate Size & Token
-    responsePolicy: Remove Header & Audit data
     authenticationProfile: _default
   deletePet:
     routeType: proxy
