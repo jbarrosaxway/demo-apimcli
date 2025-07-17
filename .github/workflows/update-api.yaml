@@ -136,8 +136,18 @@ jobs:
             echo "Getting API definition..."
             config_file_name=$(basename "$file")
             current_folder=$(dirname "$file")
-            API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
-            path=$(jq -r '.path' "$file")
+            
+            # Detect file type and extract API definition accordingly
+            if [[ "$file" == *.yaml ]] || [[ "$file" == *.yml ]]; then
+              # Use yq for YAML files
+              API_DEFINITION=$(yq -r '.apiSpecification.resource' "$file")
+              path=$(yq -r '.path' "$file")
+            else
+              # Use jq for JSON files
+              API_DEFINITION=$(jq -r '.apiSpecification.resource' "$file")
+              path=$(jq -r '.path' "$file")
+            fi
+            
             echo "Updating API with apim-cli using config file: $file"
             docker run --name apim-cli \
             -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}/$file:/$config_file_name" \

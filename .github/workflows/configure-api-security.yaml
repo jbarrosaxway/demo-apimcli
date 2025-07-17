@@ -30,6 +30,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
       
       - name: Configure API Security
         run: |
@@ -39,7 +44,13 @@ jobs:
           current_folder=$(dirname ${{ inputs.config-file }})
           
           # Extract API name from config file
-          API_NAME=$(jq -r '.name' ${{ inputs.config-file }})
+          if [[ "${{ inputs.config-file }}" == *.yaml ]] || [[ "${{ inputs.config-file }}" == *.yml ]]; then
+            # Use yq for YAML files
+            API_NAME=$(yq -r '.name' ${{ inputs.config-file }})
+          else
+            # Use jq for JSON files
+            API_NAME=$(jq -r '.name' ${{ inputs.config-file }})
+          fi
           echo "API Name: $API_NAME"
           
           # Configure API Key security

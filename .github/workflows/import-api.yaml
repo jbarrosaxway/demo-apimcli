@@ -19,15 +19,30 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
+          chmod +x /usr/local/bin/yq
+
       - name: import api definitions
         run: |
           echo "Getting API definition..."
           echo "Processing ${{ inputs.config-file }} config file"
           config_file_name=$(basename ${{ inputs.config-file }})
           current_folder=$(dirname ${{ inputs.config-file }})
-          API_DEFINITION_FILE_NAME=$(jq -r '.apiSpecification.resource' ${{ inputs.config-file }} | xargs basename)
+          
+          # Detect file type and extract API definition accordingly
+          if [[ "${{ inputs.config-file }}" == *.yaml ]] || [[ "${{ inputs.config-file }}" == *.yml ]]; then
+            # Use yq for YAML files
+            API_DEFINITION_FILE_NAME=$(yq -r '.apiSpecification.resource' ${{ inputs.config-file }} | xargs basename)
+            path=$(yq -r '.path' ${{ inputs.config-file }})
+          else
+            # Use jq for JSON files
+            API_DEFINITION_FILE_NAME=$(jq -r '.apiSpecification.resource' ${{ inputs.config-file }} | xargs basename)
+            path=$(jq -r '.path' ${{ inputs.config-file }})
+          fi
+          
           echo "API definition: $API_DEFINITION_FILE_NAME"
-          path=$(jq -r '.path' ${{ inputs.config-file }})
           echo "Importing API with apim-cli using config file: ${{ inputs.config-file }}"
           echo "API path: $path"
           docker run --name apim-cli \
