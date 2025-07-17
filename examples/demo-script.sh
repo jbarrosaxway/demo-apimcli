@@ -9,7 +9,7 @@ echo "🚀 Demonstração dos Workflows APIM CLI"
 echo "======================================"
 
 # Configurações
-CONFIG_FILE="examples/api-with-apikey-config.json"
+CONFIG_FILE="examples/APIs/api-with-apikey-config.json"
 ORGANIZATION="API Development"
 APPLICATION="Test Application"
 

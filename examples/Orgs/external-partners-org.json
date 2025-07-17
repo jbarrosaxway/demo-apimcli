@@ -1,0 +1,8 @@
+{
+  "name": "External Partners",
+  "description": "Organization for external business partners",
+  "email": "partners@company.com",
+  "phone": "+1234567891",
+  "enabled": true,
+  "development": false
+} 

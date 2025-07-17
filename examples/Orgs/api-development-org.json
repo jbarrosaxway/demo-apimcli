@@ -1,0 +1,8 @@
+{
+  "name": "API Development",
+  "description": "Organization for API Development and Testing",
+  "email": "admin@apidev.com",
+  "phone": "+1234567890",
+  "enabled": true,
+  "development": true
+} 

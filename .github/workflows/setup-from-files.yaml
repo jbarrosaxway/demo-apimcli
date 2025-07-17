@@ -1,0 +1,185 @@
+name: Setup Environment from Files
+on:
+  workflow_dispatch:
+    inputs:
+      org-file:
+        description: "Organization config file (ex: examples/Orgs/api-development-org.json)"
+        type: string
+        required: true
+        default: "examples/Orgs/api-development-org.json"
+      app-file:
+        description: "Application config file (ex: examples/Apps/test-application-app.json)"
+        type: string
+        required: true
+        default: "examples/Apps/test-application-app.json"
+      api-file:
+        description: "API config file (optional)"
+        type: string
+        required: false
+        default: ""
+      skip-api:
+        description: "Skip API deployment"
+        type: boolean
+        required: false
+        default: false
+
+jobs:
+  read_org_config:
+    runs-on: ubuntu-latest
+    outputs:
+      org-name: ${{ steps.org_info.outputs.name }}
+      org-description: ${{ steps.org_info.outputs.description }}
+      org-email: ${{ steps.org_info.outputs.email }}
+      org-phone: ${{ steps.org_info.outputs.phone }}
+      org-enabled: ${{ steps.org_info.outputs.enabled }}
+      org-development: ${{ steps.org_info.outputs.development }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Read Organization Config
+        id: org_info
+        run: |
+          echo "📖 Reading organization config from: ${{ inputs.org-file }}"
+          
+          # Extract organization info from JSON file
+          ORG_NAME=$(jq -r '.name' ${{ inputs.org-file }})
+          ORG_DESCRIPTION=$(jq -r '.description' ${{ inputs.org-file }})
+          ORG_EMAIL=$(jq -r '.email' ${{ inputs.org-file }})
+          ORG_PHONE=$(jq -r '.phone' ${{ inputs.org-file }})
+          ORG_ENABLED=$(jq -r '.enabled' ${{ inputs.org-file }})
+          ORG_DEVELOPMENT=$(jq -r '.development' ${{ inputs.org-file }})
+          
+          echo "name=$ORG_NAME" >> $GITHUB_OUTPUT
+          echo "description=$ORG_DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "email=$ORG_EMAIL" >> $GITHUB_OUTPUT
+          echo "phone=$ORG_PHONE" >> $GITHUB_OUTPUT
+          echo "enabled=$ORG_ENABLED" >> $GITHUB_OUTPUT
+          echo "development=$ORG_DEVELOPMENT" >> $GITHUB_OUTPUT
+          
+          echo "✅ Organization config read:"
+          echo "  Name: $ORG_NAME"
+          echo "  Description: $ORG_DESCRIPTION"
+          echo "  Email: $ORG_EMAIL"
+
+  read_app_config:
+    runs-on: ubuntu-latest
+    outputs:
+      app-name: ${{ steps.app_info.outputs.name }}
+      app-description: ${{ steps.app_info.outputs.description }}
+      app-state: ${{ steps.app_info.outputs.state }}
+      app-enabled: ${{ steps.app_info.outputs.enabled }}
+      app-phone: ${{ steps.app_info.outputs.phone }}
+      app-email: ${{ steps.app_info.outputs.email }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Read Application Config
+        id: app_info
+        run: |
+          echo "📖 Reading application config from: ${{ inputs.app-file }}"
+          
+          # Extract application info from JSON file
+          APP_NAME=$(jq -r '.name' ${{ inputs.app-file }})
+          APP_DESCRIPTION=$(jq -r '.description' ${{ inputs.app-file }})
+          APP_STATE=$(jq -r '.state' ${{ inputs.app-file }})
+          APP_ENABLED=$(jq -r '.enabled' ${{ inputs.app-file }})
+          APP_PHONE=$(jq -r '.phone' ${{ inputs.app-file }})
+          APP_EMAIL=$(jq -r '.email' ${{ inputs.app-file }})
+          
+          echo "name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "description=$APP_DESCRIPTION" >> $GITHUB_OUTPUT
+          echo "state=$APP_STATE" >> $GITHUB_OUTPUT
+          echo "enabled=$APP_ENABLED" >> $GITHUB_OUTPUT
+          echo "phone=$APP_PHONE" >> $GITHUB_OUTPUT
+          echo "email=$APP_EMAIL" >> $GITHUB_OUTPUT
+          
+          echo "✅ Application config read:"
+          echo "  Name: $APP_NAME"
+          echo "  Description: $APP_DESCRIPTION"
+          echo "  State: $APP_STATE"
+
+  create_organization:
+    needs: read_org_config
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Create Organization
+        uses: ./.github/workflows/manage-organizations.yaml
+        with:
+          action: "create"
+          org-name: ${{ needs.read_org_config.outputs.org-name }}
+          org-description: ${{ needs.read_org_config.outputs.org-description }}
+          org-email: ${{ needs.read_org_config.outputs.org-email }}
+          org-phone: ${{ needs.read_org_config.outputs.org-phone }}
+          org-enabled: ${{ needs.read_org_config.outputs.org-enabled }}
+          org-development: ${{ needs.read_org_config.outputs.org-development }}
+        secrets: inherit
+
+  create_application:
+    needs: [read_app_config, create_organization]
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Read Organization Name
+        id: org_name
+        run: |
+          ORG_NAME=$(jq -r '.organization' ${{ inputs.app-file }})
+          echo "org-name=$ORG_NAME" >> $GITHUB_OUTPUT
+          echo "Using organization: $ORG_NAME"
+      
+      - name: Create Application
+        uses: ./.github/workflows/manage-applications.yaml
+        with:
+          action: "create"
+          app-name: ${{ needs.read_app_config.outputs.app-name }}
+          org-name: ${{ steps.org_name.outputs.org-name }}
+          app-description: ${{ needs.read_app_config.outputs.app-description }}
+          app-state: ${{ needs.read_app_config.outputs.app-state }}
+          app-enabled: ${{ needs.read_app_config.outputs.app-enabled }}
+          app-phone: ${{ needs.read_app_config.outputs.app-phone }}
+          app-email: ${{ needs.read_app_config.outputs.app-email }}
+        secrets: inherit
+
+  deploy_api:
+    needs: create_application
+    if: inputs.api-file != '' && inputs.skip-api != 'true'
+    runs-on: ubuntu-latest
+    environment: DEMO
+    steps:
+      - name: Deploy API
+        uses: ./.github/workflows/manual-api-deploy.yaml
+        with:
+          config-file: ${{ inputs.api-file }}
+          force-update: false
+        secrets: inherit
+
+  success_summary:
+    needs: [read_org_config, read_app_config, create_organization, create_application, deploy_api]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Summary
+        run: |
+          echo "🎉 Environment setup from files completed!"
+          echo "📋 Summary:"
+          echo "  ✅ Organization: ${{ needs.read_org_config.outputs.org-name }}"
+          echo "  ✅ Application: ${{ needs.read_app_config.outputs.app-name }}"
+          if [ "${{ inputs.api-file }}" != "" ] && [ "${{ inputs.skip-api }}" != "true" ]; then
+            echo "  ✅ API: ${{ inputs.api-file }}"
+          else
+            echo "  ⏭️ API: Skipped"
+          fi
+          echo ""
+          echo "📁 Files used:"
+          echo "  Organization: ${{ inputs.org-file }}"
+          echo "  Application: ${{ inputs.app-file }}"
+          if [ "${{ inputs.api-file }}" != "" ]; then
+            echo "  API: ${{ inputs.api-file }}"
+          fi
+          echo ""
+          echo "🚀 Next steps:"
+          echo "  1. Organizations and applications are ready"
+          echo "  2. You can now deploy APIs using manual-api-deploy.yaml"
+          echo "  3. Use manage-api-lifecycle.yaml for advanced operations" 

@@ -1,11 +1,11 @@
 {
-  "name": "API with API Key Security",
-  "path": "/api-with-apikey",
+  "name": "API with Custom Properties",
+  "path": "/api-with-custom-props",
   "state": "published",
   "version": "1.0",
   "organization": "API Development",
   "apiSpecification": {
-    "resource": "./api-with-apikey-openapi.json"
+    "resource": "../OAS/api-with-custom-props-openapi.json"
   },
   "vhost": "ec2-18-207-108-191.compute-1.amazonaws.com:8065",
   "backendBasepath": "http://backend-service:8080",
@@ -14,27 +14,19 @@
       "monitorAPI": true,
       "queryStringPassThrough": false,
       "monitorSubject": "authentication.subject.id",
-      "securityProfile": "api-key",
+      "securityProfile": "_default",
       "corsProfile": "_default"
     }
   },
-  "securityProfiles": {
-    "api-key": {
-      "devices": [
-        {
-          "name": "API Key",
-          "type": "apiKey",
-          "order": 1,
-          "properties": {
-            "apiKeyFieldName": "X-API-Key",
-            "apiKeyLocation": "HEADER"
-          }
-        }
-      ]
-    }
+  "customProperties": {
+    "customProperty1": "public",
+    "customProperty2": "internal",
+    "customProperty3": "true",
+    "customProperty4": "2024/12/31"
   },
   "clientOrganizations": [
-    "API Development"
+    "API Development",
+    "External Partners"
   ],
   "applications": [
     {

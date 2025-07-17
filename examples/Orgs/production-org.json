@@ -1,0 +1,8 @@
+{
+  "name": "Production",
+  "description": "Production organization for live APIs",
+  "email": "prod@company.com",
+  "phone": "+1234567892",
+  "enabled": true,
+  "development": false
+} 

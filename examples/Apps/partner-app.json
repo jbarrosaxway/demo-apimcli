@@ -1,0 +1,9 @@
+{
+  "name": "Partner App",
+  "organization": "External Partners",
+  "description": "Application for external partners integration",
+  "state": "approved",
+  "enabled": true,
+  "phone": "+1234567891",
+  "email": "partner@company.com"
+} 

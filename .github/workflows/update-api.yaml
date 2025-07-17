@@ -63,7 +63,7 @@ jobs:
             
             for swagger_file in "${swagger_files[@]}"; do
               # Find config files that reference this swagger file
-              for config_file in examples/*-config.*; do
+              for config_file in examples/APIs/*-config.*; do
                 if [ -f "$config_file" ]; then
                   # Extract the resource path from config file
                   if [[ "$config_file" == *.yaml ]] || [[ "$config_file" == *.yml ]]; then

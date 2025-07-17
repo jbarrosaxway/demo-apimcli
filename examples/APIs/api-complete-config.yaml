@@ -5,7 +5,7 @@ state: published
 version: 1.0.17
 organization: orga
 apiSpecification:
-  resource: ./petstore-openapi30.json
+  resource: ../OAS/petstore-openapi30.json
 backendBasepath: https://petstore3.swagger.io
 inboundProfiles:
   _default:

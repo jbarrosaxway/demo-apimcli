@@ -1,0 +1,9 @@
+{
+  "name": "Production App",
+  "organization": "Production",
+  "description": "Production application for live APIs",
+  "state": "approved",
+  "enabled": true,
+  "phone": "+1234567892",
+  "email": "prod@company.com"
+} 

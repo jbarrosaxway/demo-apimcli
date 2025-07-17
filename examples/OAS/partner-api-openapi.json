@@ -1,0 +1,123 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Partner Integration API",
+    "description": "API for external partner integrations",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Partner Support",
+      "email": "partner@company.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.company.com/partner",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/integrations": {
+      "get": {
+        "summary": "Get partner integrations",
+        "description": "Retrieve list of available partner integrations",
+        "operationId": "getIntegrations",
+        "security": [
+          {
+            "partner-auth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Integration"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized"
+          }
+        }
+      }
+    },
+    "/integrations/{integrationId}": {
+      "get": {
+        "summary": "Get integration details",
+        "description": "Retrieve details of a specific integration",
+        "operationId": "getIntegration",
+        "security": [
+          {
+            "partner-auth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "integrationId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Integration ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Integration"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Integration not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "partner-auth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Partner-Token"
+      }
+    },
+    "schemas": {
+      "Integration": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Integration ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Integration name"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["active", "inactive", "pending"],
+            "description": "Integration status"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          }
+        },
+        "required": ["id", "name", "status"]
+      }
+    }
+  }
+} 
