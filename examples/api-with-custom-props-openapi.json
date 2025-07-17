@@ -1,0 +1,157 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API with Custom Properties",
+    "description": "Sample API demonstrating custom properties and metadata",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://backend-service:8080",
+      "description": "Backend service"
+    }
+  ],
+  "paths": {
+    "/api-with-custom-props/data": {
+      "get": {
+        "summary": "Get data with custom properties",
+        "description": "Retrieve data that includes custom properties and metadata",
+        "operationId": "getDataWithCustomProps",
+        "tags": ["data"],
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Data category filter",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["public", "internal", "private"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "category": {
+                            "type": "string",
+                            "enum": ["public", "internal", "private"]
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "properties": {
+                              "customProperty1": {
+                                "type": "string"
+                              },
+                              "customProperty2": {
+                                "type": "string"
+                              },
+                              "customProperty3": {
+                                "type": "boolean"
+                              },
+                              "customProperty4": {
+                                "type": "string",
+                                "format": "date"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api-with-custom-props/metadata": {
+      "get": {
+        "summary": "Get API metadata",
+        "description": "Retrieve API metadata and custom properties",
+        "operationId": "getApiMetadata",
+        "tags": ["metadata"],
+        "responses": {
+          "200": {
+            "description": "API metadata retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "apiInfo": {
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string"
+                        },
+                        "version": {
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "customProperties": {
+                      "type": "object",
+                      "properties": {
+                        "customProperty1": {
+                          "type": "string",
+                          "example": "public"
+                        },
+                        "customProperty2": {
+                          "type": "string",
+                          "example": "internal"
+                        },
+                        "customProperty3": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "customProperty4": {
+                          "type": "string",
+                          "example": "2024/12/31"
+                        }
+                      }
+                    },
+                    "organizations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "example": ["API Development", "External Partners"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+} 

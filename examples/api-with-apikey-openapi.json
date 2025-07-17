@@ -1,0 +1,99 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API with API Key Security",
+    "description": "Sample API demonstrating API Key authentication",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://backend-service:8080",
+      "description": "Backend service"
+    }
+  ],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
+  "paths": {
+    "/api-with-apikey/secure": {
+      "get": {
+        "summary": "Get secure data",
+        "description": "Access secure data with API Key authentication",
+        "operationId": "getSecureData",
+        "tags": ["secure"],
+        "responses": {
+          "200": {
+            "description": "Secure data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Secure data accessed successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API Key"
+          }
+        }
+      }
+    },
+    "/api-with-apikey/public": {
+      "get": {
+        "summary": "Get public data",
+        "description": "Access public data without authentication",
+        "operationId": "getPublicData",
+        "tags": ["public"],
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Public data retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Public data accessed successfully"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key",
+        "description": "API Key for authentication"
+      }
+    }
+  }
+} 

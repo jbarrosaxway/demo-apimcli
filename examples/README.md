@@ -2,25 +2,42 @@
 
 Este diretório contém exemplos de configuração de API e workflows do GitHub Actions baseados na documentação do [APIM CLI](https://github.com/Axway-API-Management-Plus/apim-cli/wiki/2.1.2-API-Configuration-file).
 
-## Arquivos de Configuração
+## Arquivos de Configuração e Swagger
 
-### 1. API com API Key (`api-with-apikey-config.json`)
-Exemplo de configuração de API com autenticação via API Key:
-- Configura um perfil de segurança com API Key
-- Define o campo `X-API-Key` no header para autenticação
-- Inclui monitoramento e CORS padrão
+### 1. API com API Key
+- **Configuração:** `api-with-apikey-config.json`
+- **Swagger:** `api-with-apikey-openapi.json`
+- **Funcionalidades:**
+  - Configura um perfil de segurança com API Key
+  - Define o campo `X-API-Key` no header para autenticação
+  - Inclui monitoramento e CORS padrão
+  - Endpoints seguros e públicos
 
-### 2. API com OAuth (`api-with-oauth-config.json`)
-Exemplo de configuração de API com autenticação OAuth:
-- Configura um perfil de segurança OAuth
-- Define o token Bearer no header Authorization
-- Usa TokenInfoPolicy para validação de token
+### 2. API com OAuth
+- **Configuração:** `api-with-oauth-config.json`
+- **Swagger:** `api-with-oauth-openapi.json`
+- **Funcionalidades:**
+  - Configura um perfil de segurança OAuth
+  - Define o token Bearer no header Authorization
+  - Usa TokenInfoPolicy para validação de token
+  - Endpoints para perfil e configurações de usuário
 
-### 3. API com Propriedades Customizadas (`api-with-custom-properties-config.json`)
-Exemplo de configuração de API com propriedades customizadas:
-- Inclui propriedades customizadas para metadados
-- Configura organizações clientes
-- Define aplicações com permissões
+### 3. API com Propriedades Customizadas
+- **Configuração:** `api-with-custom-properties-config.json`
+- **Swagger:** `api-with-custom-props-openapi.json`
+- **Funcionalidades:**
+  - Inclui propriedades customizadas para metadados
+  - Configura organizações clientes
+  - Define aplicações com permissões
+  - Endpoints para dados e metadados
+
+### 4. API Completa (Petstore)
+- **Configuração:** `api-complete-config.yaml`
+- **Swagger:** `petstore-openapi30.json`
+- **Funcionalidades:**
+  - Configuração completa com quotas, certificados e políticas
+  - API Petstore com endpoints para pets e usuários
+  - Configuração em formato YAML
 
 ## Workflows do GitHub Actions
 
@@ -131,7 +148,28 @@ Certifique-se de que as seguintes variáveis estejam configuradas no seu reposit
 
 examples/
 ├── README.md                          # Esta documentação
-├── api-with-apikey-config.json        # Exemplo com API Key
-├── api-with-oauth-config.json         # Exemplo com OAuth
-└── api-with-custom-properties-config.json # Exemplo com props customizadas
-``` 
+├── demo-script.sh                     # Script de demonstração
+├── api-complete-config.yaml           # Configuração completa (YAML)
+├── petstore-openapi30.json            # Swagger Petstore
+├── api-with-apikey-config.json        # Configuração com API Key
+├── api-with-apikey-openapi.json       # Swagger com API Key
+├── api-with-oauth-config.json         # Configuração com OAuth
+├── api-with-oauth-openapi.json        # Swagger com OAuth
+├── api-with-custom-properties-config.json # Configuração com props customizadas
+└── api-with-custom-props-openapi.json # Swagger com props customizadas
+```
+
+## Funcionalidades Avançadas
+
+### Detecção Automática de Mudanças
+O workflow `update-api.yaml` agora detecta automaticamente:
+- **Mudanças em arquivos de configuração** → Processa diretamente
+- **Mudanças em arquivos Swagger** → Encontra configurações relacionadas e processa
+- **Suporte a JSON e YAML** → Usa `jq` para JSON e `yq` para YAML
+
+### Exemplo de Fluxo
+1. Desenvolvedor modifica `api-with-apikey-openapi.json`
+2. Workflow detecta a mudança no Swagger
+3. Workflow encontra `api-with-apikey-config.json` que referencia este Swagger
+4. Workflow verifica se a API existe e decide entre update ou import
+5. API é atualizada/importada automaticamente 

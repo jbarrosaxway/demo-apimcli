@@ -43,23 +43,55 @@ jobs:
           UPDATE_CONFIG_FILES=()
           IMPORT_CONFIG_FILES=()
           
-          # Extract config files from changes
+          # Extract config files and swagger files from changes
           config_files=()
+          swagger_files=()
+          
           for file in $(echo "$CHANGES" | tr ',' ' '); do
             if [[ "$file" == *"-config"* ]]; then
               config_files+=("$file")
+            elif [[ "$file" == *"openapi"* ]] || [[ "$file" == *"swagger"* ]] || [[ "$file" == *.json ]] && [[ "$file" != *"-config"* ]]; then
+              swagger_files+=("$file")
             fi
           done
           
+          # If swagger files changed, find their corresponding config files
+          if [ ${#swagger_files[@]} -gt 0 ]; then
+            echo "Found ${#swagger_files[@]} swagger files: ${swagger_files[*]}"
+            echo "Looking for corresponding config files..."
+            
+            for swagger_file in "${swagger_files[@]}"; do
+              # Find config files that reference this swagger file
+              for config_file in examples/*-config.*; do
+                if [ -f "$config_file" ]; then
+                  # Extract the resource path from config file
+                  if [[ "$config_file" == *.yaml ]] || [[ "$config_file" == *.yml ]]; then
+                    resource_path=$(yq -r '.apiSpecification.resource' "$config_file" 2>/dev/null || echo "")
+                  else
+                    resource_path=$(jq -r '.apiSpecification.resource' "$config_file" 2>/dev/null || echo "")
+                  fi
+                  
+                  # Check if this config file references the changed swagger file
+                  if [[ "$resource_path" == *"$(basename "$swagger_file")"* ]]; then
+                    echo "Found config file $config_file that references swagger $swagger_file"
+                    if [[ ! " ${config_files[@]} " =~ " ${config_file} " ]]; then
+                      config_files+=("$config_file")
+                    fi
+                  fi
+                fi
+              done
+            done
+          fi
+          
           if [ ${#config_files[@]} -eq 0 ]; then
-            echo "No config files found in changes"
+            echo "No config files found in changes or related to changed swagger files"
             echo "UPDATE_CONFIG_FILES=[]" >> $GITHUB_ENV
             echo "IMPORT_CONFIG_FILES=[]" >> $GITHUB_ENV
             echo "IMPORT_CONFIG_FILES=[]" >> $GITHUB_OUTPUT
             exit 0
           fi
           
-          echo "Found ${#config_files[@]} config files: ${config_files[*]}"
+          echo "Found ${#config_files[@]} config files to process: ${config_files[*]}"
           
           for file in "${config_files[@]}"; do
             if [ -f "$file" ]; then

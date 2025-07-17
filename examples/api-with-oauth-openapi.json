@@ -1,0 +1,133 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API with OAuth Security",
+    "description": "Sample API demonstrating OAuth 2.0 authentication",
+    "version": "1.0.0",
+    "contact": {
+      "name": "API Support",
+      "email": "support@example.com"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://backend-service:8080",
+      "description": "Backend service"
+    }
+  ],
+  "security": [
+    {
+      "OAuth2": ["read", "write"]
+    }
+  ],
+  "paths": {
+    "/api-with-oauth/user/profile": {
+      "get": {
+        "summary": "Get user profile",
+        "description": "Retrieve user profile information with OAuth authentication",
+        "operationId": "getUserProfile",
+        "tags": ["user"],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer",
+                      "description": "User ID"
+                    },
+                    "username": {
+                      "type": "string",
+                      "description": "Username"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email",
+                      "description": "User email"
+                    },
+                    "profile": {
+                      "type": "object",
+                      "properties": {
+                        "firstName": {
+                          "type": "string"
+                        },
+                        "lastName": {
+                          "type": "string"
+                        },
+                        "avatar": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing OAuth token"
+          }
+        }
+      }
+    },
+    "/api-with-oauth/user/settings": {
+      "put": {
+        "summary": "Update user settings",
+        "description": "Update user settings with OAuth authentication",
+        "operationId": "updateUserSettings",
+        "tags": ["user"],
+        "requestBody": {
+          "description": "User settings to update",
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "theme": {
+                    "type": "string",
+                    "enum": ["light", "dark"],
+                    "description": "User interface theme"
+                  },
+                  "notifications": {
+                    "type": "boolean",
+                    "description": "Enable notifications"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Settings updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing OAuth token"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "OAuth2": {
+        "type": "oauth2",
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://auth.example.com/oauth/authorize",
+            "tokenUrl": "https://auth.example.com/oauth/token",
+            "scopes": {
+              "read": "Read access to user data",
+              "write": "Write access to user data"
+            }
+          }
+        }
+      }
+    }
+  }
+} 
