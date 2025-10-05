@@ -76,6 +76,7 @@ jobs:
           source scripts/error-handler.sh
           handle_exit_code $EXIT_CODE "import"
           
-          # Exit with the result from error handler
-          exit $EXIT_CODE
+          # Exit with the result from error handler (not the original exit code)
+          HANDLER_RESULT=$?
+          exit $HANDLER_RESULT
           
