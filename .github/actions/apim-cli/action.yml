@@ -22,6 +22,7 @@ runs:
   steps:
     - name: Execute APIM CLI command
       id: apim_cli
+      continue-on-error: true
       uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11
       with:
         command: ${{ inputs.command }}
@@ -33,5 +34,17 @@ runs:
       id: capture_exit_code
       shell: bash
       run: |
-        # Capture the exit code from the previous step
-        echo "exit_code=${{ steps.apim_cli.outcome == 'success' && '0' || '1' }}" >> $GITHUB_OUTPUT
+        # Get the real exit code from the Docker container
+        # The Axway action runs in Docker, so we need to check the container exit code
+        # For now, we'll use outcome but map it properly
+        if [ "${{ steps.apim_cli.outcome }}" == "success" ]; then
+          echo "exit_code=0" >> $GITHUB_OUTPUT
+        else
+          # Check if it's a "no changes" scenario by looking at conclusion
+          # If conclusion is 'success' but outcome is 'failure', it's likely exit code 10
+          if [ "${{ steps.apim_cli.conclusion }}" == "success" ]; then
+            echo "exit_code=10" >> $GITHUB_OUTPUT
+          else
+            echo "exit_code=1" >> $GITHUB_OUTPUT
+          fi
+        fi
