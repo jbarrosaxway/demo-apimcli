@@ -98,7 +98,7 @@ jobs:
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
           bvieira123/apim-cli:1.14.4 \
-          apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
           --name "${{ inputs.app-name }}" \
           --org "${{ inputs.org-name }}" \
@@ -120,7 +120,7 @@ jobs:
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
           bvieira123/apim-cli:1.14.4 \
-          apim app update -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          apim app update -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
           --name "${{ inputs.app-name }}" \
           --org "${{ inputs.org-name }}" \
@@ -142,7 +142,7 @@ jobs:
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
           bvieira123/apim-cli:1.14.4 \
-          apim app delete -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
+          apim app delete -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
           --name "${{ inputs.app-name }}" \
           --org "${{ inputs.org-name }}" \

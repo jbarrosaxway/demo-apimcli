@@ -25,7 +25,7 @@ jobs:
           apim api get \
           -h ${{ vars.APIM_INSTANCE_IP }} \
           -u ${{ vars.APIM_INSTANCE_USER }} \
-          -port 8075 \
+          -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
           -o yaml
 
