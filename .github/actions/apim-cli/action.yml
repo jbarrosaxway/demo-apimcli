@@ -31,6 +31,7 @@ runs:
     
     - name: Capture exit code
       id: capture_exit_code
+      shell: bash
       run: |
         # Capture the exit code from the previous step
         echo "exit_code=${{ steps.apim_cli.outcome == 'success' && '0' || '1' }}" >> $GITHUB_OUTPUT
