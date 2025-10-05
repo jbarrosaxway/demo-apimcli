@@ -27,28 +27,15 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Modify command to use IP with hostname header
-      id: modify_command
-      shell: bash
-      run: |
-        echo "🔧 Original command: ${{ inputs.command }}"
-        
-        # Replace hostname with IP in the command
-        if [[ "${{ inputs.command }}" == *"-h"* ]]; then
-          modified_command=$(echo "${{ inputs.command }}" | sed "s/-h [^ ]*/-h ${{ inputs.apim_ip }}/g")
-          echo "🔧 Modified command to use IP: $modified_command"
-          echo "command=$modified_command" >> $GITHUB_OUTPUT
-        else
-          echo "command=${{ inputs.command }}" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Execute APIM CLI command
+    - name: Execute APIM CLI command with hostname
       id: apim_cli
       uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11
       with:
-        command: ${{ steps.modify_command.outputs.command }}
+        command: ${{ inputs.command }}
       env:
         LOG_LEVEL: ${{ inputs.log_level }}
         APIM_PORT: ${{ inputs.port }}
         # Add hostname for Ingress Nginx routing
         APIM_HOSTNAME: ${{ inputs.apim_hostname }}
+        # Add hostname mapping for Docker container
+        APIM_HOST_IP: ${{ inputs.apim_ip }}

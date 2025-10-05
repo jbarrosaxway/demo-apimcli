@@ -99,7 +99,7 @@ jobs:
 
       - name: Check if API exists
         id: check_api
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim api get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -a "${{ steps.api_info.outputs.api_path }}"
           log_level: DEBUG
@@ -123,7 +123,7 @@ jobs:
         if: inputs.force-update == 'true'
         id: update_api
         continue-on-error: true
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim api import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}" -force
           log_level: DEBUG
@@ -154,7 +154,7 @@ jobs:
         if: inputs.force-update != 'true'
         id: import_api
         continue-on-error: true
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim api import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}"
           log_level: DEBUG

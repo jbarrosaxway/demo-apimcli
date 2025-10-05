@@ -29,7 +29,7 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Organization
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim org create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ inputs.org-name }}" --description "Organization for API Development" --email "admin@apidev.com" --phone "+1234567890" --enabled true --development true
           log_level: DEBUG
@@ -47,7 +47,7 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Application
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim app create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ inputs.app-name }}" --org "${{ inputs.org-name }}" --description "Test application for API development" --state "approved" --enabled true --phone "+1234567890" --email "app@apidev.com"
           log_level: DEBUG

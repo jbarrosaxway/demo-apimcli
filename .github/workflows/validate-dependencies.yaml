@@ -70,7 +70,7 @@ jobs:
 
       - name: Check Organization Exists
         id: check_org
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim org get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "${{ steps.api_info.outputs.organization }}"
           log_level: DEBUG
@@ -177,7 +177,7 @@ jobs:
         uses: actions/checkout@v4
         
       - name: Create Organization
-        uses: ./.github/actions/apim-cli-with-hostname
+        uses: ./.github/actions/apim-cli-docker-hostname
         with:
           command: apim org import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ needs.check_dependencies.outputs.org_file }}"
           log_level: DEBUG
