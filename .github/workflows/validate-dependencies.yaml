@@ -82,24 +82,28 @@ jobs:
           organization="${{ steps.api_info.outputs.organization }}"
           echo "🏢 Checking if organization '$organization' exists..."
           
-          # Since we can't easily parse the output from the action, we'll assume it doesn't exist
-          # and look for the config file. The import will fail if the org already exists, which is fine.
-          echo "❌ Organization '$organization' does not exist (or checking via action)"
-          echo "exists=false" >> $GITHUB_OUTPUT
-          
-          # Look for organization config file in Orgs folder
-          # Convert spaces to hyphens and make lowercase
-          org_file_name=$(echo "$organization" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
-          org_file="examples/Orgs/${org_file_name}-org.json"
-          if [ -f "$org_file" ]; then
-            echo "📁 Found organization config file: $org_file"
-            echo "org_file=$org_file" >> $GITHUB_OUTPUT
+          # Check if the organization exists by looking at the exit code from the previous step
+          if [ "${{ steps.check_org.outputs.exit_code }}" = "0" ]; then
+            echo "✅ Organization '$organization' exists"
+            echo "exists=true" >> $GITHUB_OUTPUT
           else
-            echo "❌ No organization config file found for '$organization'"
-            echo "Expected file: $org_file"
-            echo "Available org files:"
-            ls -la examples/Orgs/ || echo "No Orgs folder found"
-            exit 1
+            echo "❌ Organization '$organization' does not exist"
+            echo "exists=false" >> $GITHUB_OUTPUT
+          
+            # Look for organization config file in Orgs folder
+            # Convert spaces to hyphens and make lowercase
+            org_file_name=$(echo "$organization" | tr ' ' '-' | tr '[:upper:]' '[:lower:]')
+            org_file="examples/Orgs/${org_file_name}-org.json"
+            if [ -f "$org_file" ]; then
+              echo "📁 Found organization config file: $org_file"
+              echo "org_file=$org_file" >> $GITHUB_OUTPUT
+            else
+              echo "❌ No organization config file found for '$organization'"
+              echo "Expected file: $org_file"
+              echo "Available org files:"
+              ls -la examples/Orgs/ || echo "No Orgs folder found"
+              exit 1
+            fi
           fi
 
       - name: Read Organization Config
@@ -125,7 +129,7 @@ jobs:
             echo "📱 Found applications in config: $apps"
             
             # Process each application (each line is a separate application)
-            echo "$apps" | while IFS= read -r app_name; do
+            while IFS= read -r app_name; do
               if [ -n "$app_name" ]; then
                 echo "🔍 Checking if application '$app_name' exists..."
                 
@@ -147,7 +151,7 @@ jobs:
                   ls -la examples/Apps/ || echo "No Apps folder found"
                 fi
               fi
-            done
+            done <<< "$apps"
           else
             echo "📱 No applications found in config file"
           fi
@@ -167,7 +171,7 @@ jobs:
 
   create_organization:
     needs: check_dependencies
-    if: needs.check_dependencies.outputs.org_exists == 'false'
+    if: needs.check_dependencies.outputs.org_exists == 'false' && needs.check_dependencies.outputs.org_file != ''
     runs-on: ubuntu-latest
     environment: DEMO
     steps:
@@ -187,7 +191,7 @@ jobs:
 
   create_applications:
     needs: check_dependencies
-    if: needs.check_dependencies.outputs.apps_to_create != ''
+    if: needs.check_dependencies.outputs.apps_to_create != '' && needs.check_dependencies.outputs.apps_to_create != ' '
     runs-on: ubuntu-latest
     environment: DEMO
     steps:
