@@ -75,8 +75,6 @@ jobs:
           command: apim org get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "${{ steps.api_info.outputs.organization }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
-          apim_ip: ${{ vars.APIM_INSTANCE_IP }}
-          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}
 
       - name: Process Organization Check Result
         id: process_org_check
@@ -182,8 +180,6 @@ jobs:
           command: apim org import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ needs.check_dependencies.outputs.org_file }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
-          apim_ip: ${{ vars.APIM_INSTANCE_IP }}
-          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}
 
       - name: Organization Import Result
         run: |

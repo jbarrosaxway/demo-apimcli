@@ -66,8 +66,6 @@ jobs:
           command: apim api import -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }} -u ${{ vars.APIM_INSTANCE_USER }} -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c ${{ inputs.config-file }}
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
-          apim_ip: ${{ vars.APIM_INSTANCE_IP }}
-          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}
 
       - name: Handle import result
         run: |
