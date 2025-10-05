@@ -133,7 +133,7 @@ jobs:
             app_files=()
             while IFS= read -r app_name; do
               if [ -n "$app_name" ]; then
-                echo "🔍 Checking if application '$app_name' exists..."
+                echo "🔍 Processing application '$app_name'..."
                 
                 # Look for application config file in Apps folder
                 # Convert spaces to hyphens and make lowercase
@@ -142,20 +142,7 @@ jobs:
                 
                 if [ -f "$app_file" ]; then
                   echo "📁 Found application config file: $app_file"
-                  
-                  # Extract app name and org from config file
-                  app_org=$(jq -r '.organization' "$app_file")
-                  
-                  # Check if application exists in APIM
-                  echo "🔍 Verifying if application '$app_name' exists in organization '$app_org'..."
-                  
-                  # Use apim app get to check if application exists
-                  if apim app get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "$app_name" -org "$app_org" >/dev/null 2>&1; then
-                    echo "✅ Application '$app_name' already exists - skipping"
-                  else
-                    echo "❌ Application '$app_name' does not exist - will create"
-                    app_files+=("$app_file")
-                  fi
+                  app_files+=("$app_file")
                 else
                   echo "⚠️ No application config file found for '$app_name'"
                   echo "Expected file: $app_file"
@@ -233,24 +220,49 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Import Application
+      - name: Extract Application Info
         id: app_info
         run: |
           app_file="${{ matrix.app_file }}"
-          echo "📱 Importing application from: $app_file"
+          echo "📱 Processing application from: $app_file"
           
-          # Extract application name for logging
+          # Extract application name and org for verification
           app_name=$(jq -r '.name' "$app_file")
           app_org=$(jq -r '.organization' "$app_file")
           
-          echo "Importing application: $app_name in organization: $app_org"
+          echo "Application: $app_name in organization: $app_org"
           
           # Set outputs for next step
           echo "app_name=$app_name" >> $GITHUB_OUTPUT
           echo "app_org=$app_org" >> $GITHUB_OUTPUT
+          echo "app_file=$app_file" >> $GITHUB_OUTPUT
+        
+      - name: Check Application Exists
+        id: check_app
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim app get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -n "${{ steps.app_info.outputs.app_name }}" -org "${{ steps.app_info.outputs.app_org }}"
+          log_level: DEBUG
+          port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
+        
+      - name: Process Application Check Result
+        id: process_app_check
+        run: |
+          app_name="${{ steps.app_info.outputs.app_name }}"
+          echo "🔍 Checking if application '$app_name' exists..."
+          
+          # Check if the application exists by looking at the exit code from the previous step
+          if [ "${{ steps.check_app.outputs.exit_code }}" = "0" ]; then
+            echo "✅ Application '$app_name' already exists - skipping creation"
+            echo "skip=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ Application '$app_name' does not exist - will create"
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
         
       - name: Create Application
         id: create_application
+        if: steps.process_app_check.outputs.skip == 'false'
         uses: ./.github/actions/apim-cli
         with:
           command: apim app import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ matrix.app_file }}"
@@ -258,6 +270,7 @@ jobs:
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
         
       - name: Application Creation Result
+        if: steps.process_app_check.outputs.skip == 'false'
         run: |
           EXIT_CODE=${{ steps.create_application.outputs.exit_code }}
           if [ "$EXIT_CODE" = "0" ]; then
