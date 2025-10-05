@@ -2,8 +2,8 @@ name: export-apis
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 12 * * 1-5'  # Executar às 12:00 UTC em dias úteis (segunda a sexta)
-    - cron: '0 18 * * 1-5'  # Executar às 18:00 UTC em dias úteis (segunda a sexta)
+    - cron: '0 15 * * 1-5'  # Executar às 12:00 BRT (15:00 UTC) em dias úteis
+    - cron: '0 21 * * 1-5'  # Executar às 18:00 BRT (21:00 UTC) em dias úteis
 
 jobs:
   export_apis:
