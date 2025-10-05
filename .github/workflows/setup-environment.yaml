@@ -29,22 +29,13 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Organization
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ inputs.org-name }}" --description "Organization for API Development" --email "admin@apidev.com" --phone "+1234567890" --enabled true --development true
+          log_level: DEBUG
+
+      - name: Organization Creation Result
         run: |
-          echo "🏢 Creating organization: ${{ inputs.org-name }}"
-          
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          bvieira123/apim-cli:1.14.4 \
-          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "${{ inputs.org-name }}" \
-          --description "Organization for API Development" \
-          --email "admin@apidev.com" \
-          --phone "+1234567890" \
-          --enabled true \
-          --development true
-          
-          docker rm apim-cli -f
           echo "✅ Organization created successfully!"
 
   create_application:
@@ -53,38 +44,23 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Application
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ inputs.app-name }}" --org "${{ inputs.org-name }}" --description "Test application for API development" --state "approved" --enabled true --phone "+1234567890" --email "app@apidev.com"
+          log_level: DEBUG
+
+      - name: Application Creation Result
         run: |
-          echo "📱 Creating application: ${{ inputs.app-name }}"
-          echo "🏢 Organization: ${{ inputs.org-name }}"
-          
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          bvieira123/apim-cli:1.14.4 \
-          apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "${{ inputs.app-name }}" \
-          --org "${{ inputs.org-name }}" \
-          --description "Test application for API development" \
-          --state "approved" \
-          --enabled true \
-          --phone "+1234567890" \
-          --email "app@apidev.com"
-          
-          docker rm apim-cli -f
           echo "✅ Application created successfully!"
 
   deploy_api:
     needs: create_application
     if: inputs.config-file != '' && inputs.skip-api != 'true'
-    runs-on: ubuntu-latest
-    environment: DEMO
-    steps:
-      - name: Deploy API
-        uses: ./.github/workflows/manual-api-deploy.yaml
-        with:
-          config-file: ${{ inputs.config-file }}
-          force-update: false
-        secrets: inherit
+    uses: ./.github/workflows/manual-api-deploy.yaml
+    with:
+      config-file: ${{ inputs.config-file }}
+      force-update: false
+    secrets: inherit
 
   success_summary:
     needs: [create_organization, create_application, deploy_api]

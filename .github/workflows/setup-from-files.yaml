@@ -106,22 +106,13 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Organization
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_org_config.outputs.org-name }}" --description "${{ needs.read_org_config.outputs.org-description }}" --email "${{ needs.read_org_config.outputs.org-email }}" --phone "${{ needs.read_org_config.outputs.org-phone }}" --enabled "${{ needs.read_org_config.outputs.org-enabled }}" --development "${{ needs.read_org_config.outputs.org-development }}"
+          log_level: DEBUG
+
+      - name: Organization Creation Result
         run: |
-          echo "🏢 Creating organization: ${{ needs.read_org_config.outputs.org-name }}"
-          
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          bvieira123/apim-cli:1.14.4 \
-          apim org create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "${{ needs.read_org_config.outputs.org-name }}" \
-          --description "${{ needs.read_org_config.outputs.org-description }}" \
-          --email "${{ needs.read_org_config.outputs.org-email }}" \
-          --phone "${{ needs.read_org_config.outputs.org-phone }}" \
-          --enabled "${{ needs.read_org_config.outputs.org-enabled }}" \
-          --development "${{ needs.read_org_config.outputs.org-development }}"
-          
-          docker rm apim-cli -f
           echo "✅ Organization created successfully!"
 
   create_application:
@@ -137,38 +128,23 @@ jobs:
           echo "Using organization: $ORG_NAME"
       
       - name: Create Application
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_app_config.outputs.app-name }}" --org "${{ steps.org_name.outputs.org-name }}" --description "${{ needs.read_app_config.outputs.app-description }}" --state "${{ needs.read_app_config.outputs.app-state }}" --enabled "${{ needs.read_app_config.outputs.app-enabled }}" --phone "${{ needs.read_app_config.outputs.app-phone }}" --email "${{ needs.read_app_config.outputs.app-email }}"
+          log_level: DEBUG
+
+      - name: Application Creation Result
         run: |
-          echo "📱 Creating application: ${{ needs.read_app_config.outputs.app-name }}"
-          echo "🏢 Organization: ${{ steps.org_name.outputs.org-name }}"
-          
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          bvieira123/apim-cli:1.14.4 \
-          apim app create -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
-          --name "${{ needs.read_app_config.outputs.app-name }}" \
-          --org "${{ steps.org_name.outputs.org-name }}" \
-          --description "${{ needs.read_app_config.outputs.app-description }}" \
-          --state "${{ needs.read_app_config.outputs.app-state }}" \
-          --enabled "${{ needs.read_app_config.outputs.app-enabled }}" \
-          --phone "${{ needs.read_app_config.outputs.app-phone }}" \
-          --email "${{ needs.read_app_config.outputs.app-email }}"
-          
-          docker rm apim-cli -f
           echo "✅ Application created successfully!"
 
   deploy_api:
     needs: create_application
     if: inputs.api-file != '' && inputs.skip-api != 'true'
-    runs-on: ubuntu-latest
-    environment: DEMO
-    steps:
-      - name: Deploy API
-        uses: ./.github/workflows/manual-api-deploy.yaml
-        with:
-          config-file: ${{ inputs.api-file }}
-          force-update: false
-        secrets: inherit
+    uses: ./.github/workflows/manual-api-deploy.yaml
+    with:
+      config-file: ${{ inputs.api-file }}
+      force-update: false
+    secrets: inherit
 
   success_summary:
     needs: [read_org_config, read_app_config, create_organization, create_application, deploy_api]

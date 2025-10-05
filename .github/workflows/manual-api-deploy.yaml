@@ -1,5 +1,16 @@
 name: Manual API Deploy
 on:
+  workflow_call:
+    inputs:
+      config-file:
+        description: "Caminho completo do arquivo de configuração (ex: examples/APIs/api-with-apikey-config.json)"
+        type: string
+        required: true
+      force-update:
+        description: "Forçar atualização mesmo se a API não existir"
+        type: boolean
+        required: false
+        default: false
   workflow_dispatch:
     inputs:
       config-file:
