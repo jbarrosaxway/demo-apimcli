@@ -156,6 +156,7 @@ jobs:
             if [ ${#app_files[@]} -gt 0 ]; then
               # Convert bash array to JSON array
               apps_to_create=$(printf '%s\n' "${app_files[@]}" | jq -R . | jq -s .)
+              echo "🔍 Debug: Generated JSON: '$apps_to_create'"
             fi
           else
             echo "📱 No applications found in config file"
