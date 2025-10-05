@@ -106,7 +106,7 @@ jobs:
     environment: DEMO
     steps:
       - name: Create Organization
-        uses: ./.github/actions/apim-cli-docker-hostname
+        uses: ./.github/actions/apim-cli
         with:
           command: apim org create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_org_config.outputs.org-name }}" --description "${{ needs.read_org_config.outputs.org-description }}" --email "${{ needs.read_org_config.outputs.org-email }}" --phone "${{ needs.read_org_config.outputs.org-phone }}" --enabled "${{ needs.read_org_config.outputs.org-enabled }}" --development "${{ needs.read_org_config.outputs.org-development }}"
           log_level: DEBUG
@@ -131,7 +131,7 @@ jobs:
           echo "Using organization: $ORG_NAME"
       
       - name: Create Application
-        uses: ./.github/actions/apim-cli-docker-hostname
+        uses: ./.github/actions/apim-cli
         with:
           command: apim app create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_app_config.outputs.app-name }}" --org "${{ steps.org_name.outputs.org-name }}" --description "${{ needs.read_app_config.outputs.app-description }}" --state "${{ needs.read_app_config.outputs.app-state }}" --enabled "${{ needs.read_app_config.outputs.app-enabled }}" --phone "${{ needs.read_app_config.outputs.app-phone }}" --email "${{ needs.read_app_config.outputs.app-email }}"
           log_level: DEBUG

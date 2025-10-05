@@ -27,6 +27,21 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Setup host mapping
+      if: inputs.apim_ip != ''
+      shell: bash
+      run: |
+        echo "🔧 Adding host mapping: ${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}"
+        echo "${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}" | sudo tee -a /etc/hosts
+        echo "✅ Host mapping added successfully"
+        
+        echo "🔍 Verifying host resolution..."
+        if ping -c 1 ${{ inputs.apim_hostname }} > /dev/null 2>&1; then
+          echo "✅ Host ${{ inputs.apim_hostname }} is reachable"
+        else
+          echo "⚠️ Host ${{ inputs.apim_hostname }} is not reachable, but mapping was added"
+        fi
+
     - name: Execute APIM CLI command
       id: apim_cli
       uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11

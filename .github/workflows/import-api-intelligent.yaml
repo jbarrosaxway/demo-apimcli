@@ -61,7 +61,7 @@ jobs:
 
       - name: Import API using APIM CLI Action
         id: import_api
-        uses: ./.github/actions/apim-cli-docker-hostname
+        uses: ./.github/actions/apim-cli
         with:
           command: apim api import -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }} -u ${{ vars.APIM_INSTANCE_USER }} -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c ${{ inputs.config-file }}
           log_level: DEBUG
