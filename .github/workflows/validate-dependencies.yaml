@@ -154,8 +154,8 @@ jobs:
             
             # Convert array to JSON using jq
             if [ ${#app_files[@]} -gt 0 ]; then
-              # Convert bash array to JSON array
-              apps_to_create=$(printf '%s\n' "${app_files[@]}" | jq -R . | jq -s .)
+              # Convert bash array to JSON array (compact, no pretty print)
+              apps_to_create=$(printf '%s\n' "${app_files[@]}" | jq -R . | jq -s . | jq -c .)
               echo "🔍 Debug: Generated JSON: '$apps_to_create'"
             fi
           else
