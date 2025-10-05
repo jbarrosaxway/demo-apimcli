@@ -1,0 +1,30 @@
+name: 'Setup Hosts Mapping'
+description: 'Add host mapping to /etc/hosts for APIM instance resolution'
+inputs:
+  apim_ip:
+    description: 'IP address of the APIM instance'
+    required: true
+  apim_hostname:
+    description: 'Hostname of the APIM instance'
+    required: true
+    default: 'apimgr.lab.demo-latam.axway.com'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Add host mapping
+      shell: bash
+      run: |
+        echo "🔧 Adding host mapping: ${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}"
+        echo "${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}" | sudo tee -a /etc/hosts
+        echo "✅ Host mapping added successfully"
+        
+    - name: Verify host resolution
+      shell: bash
+      run: |
+        echo "🔍 Verifying host resolution..."
+        if ping -c 1 ${{ inputs.apim_hostname }} > /dev/null 2>&1; then
+          echo "✅ Host ${{ inputs.apim_hostname }} is reachable"
+        else
+          echo "⚠️ Host ${{ inputs.apim_hostname }} is not reachable, but mapping was added"
+        fi

@@ -23,7 +23,7 @@ jobs:
           -v "${{ github.workspace }}/exported-apis:/opt/apim-cli" \
           bvieira123/apim-cli:1.14.4 \
           apim api get \
-          -h ${{ vars.APIM_INSTANCE_IP }} \
+          -h ${{ vars.APIM_INSTANCE_HOSTNAME || vars.APIM_INSTANCE_IP }} \
           -u ${{ vars.APIM_INSTANCE_USER }} \
           -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
