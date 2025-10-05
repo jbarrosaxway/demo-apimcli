@@ -154,10 +154,10 @@ jobs:
             
             # Convert array to JSON manually (more reliable)
             if [ ${#app_files[@]} -gt 0 ]; then
-              # Build JSON array manually
+              # Build JSON array manually with proper escaping
               json_parts=()
               for app_file in "${app_files[@]}"; do
-                json_parts+=("\"$app_file\"")
+                json_parts+=("\\\"$app_file\\\"")
               done
               apps_to_create="[$(IFS=,; echo "${json_parts[*]}")]"
               echo "🔍 Debug: Generated JSON: '$apps_to_create'"
