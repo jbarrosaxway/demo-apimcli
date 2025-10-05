@@ -239,6 +239,7 @@ jobs:
           echo "app_org=$app_org" >> $GITHUB_OUTPUT
         
       - name: Create Application
+        id: create_application
         uses: ./.github/actions/apim-cli
         with:
           command: apim app import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ matrix.app_file }}"
@@ -248,7 +249,7 @@ jobs:
       - name: Application Creation Result
         run: |
           EXIT_CODE=${{ steps.create_application.outputs.exit_code }}
-          if [ $EXIT_CODE -eq 0 ]; then
+          if [ "$EXIT_CODE" = "0" ]; then
             echo "✅ Application '${{ steps.app_info.outputs.app_name }}' created successfully"
           else
             echo "❌ Failed to create application '${{ steps.app_info.outputs.app_name }}'"
