@@ -133,11 +133,7 @@ jobs:
             app_files=()
             while IFS= read -r app_name; do
               if [ -n "$app_name" ]; then
-                echo "🔍 Checking if application '$app_name' exists..."
-                
-                # Since we can't easily parse the output from the action, we'll assume it doesn't exist
-                # and look for the config file. The import will fail if the app already exists, which is fine.
-                echo "❌ Application '$app_name' does not exist (or checking via action)"
+                echo "🔍 Processing application '$app_name'..."
                 
                 # Look for application config file in Apps folder
                 # Convert spaces to hyphens and make lowercase
