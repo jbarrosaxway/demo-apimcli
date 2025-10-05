@@ -1,0 +1,54 @@
+name: 'APIM CLI with Hostname Support'
+description: 'Execute APIM CLI commands with proper hostname support for Ingress Nginx'
+inputs:
+  command:
+    description: 'APIM CLI command to execute'
+    required: true
+  log_level:
+    description: 'Log level for APIM CLI'
+    required: false
+    default: 'DEBUG'
+  port:
+    description: 'APIM instance port'
+    required: false
+    default: '8075'
+  apim_ip:
+    description: 'APIM instance IP address'
+    required: true
+  apim_hostname:
+    description: 'APIM instance hostname'
+    required: true
+    default: 'apimgr.lab.demo-latam.axway.com'
+outputs:
+  exit_code:
+    description: 'Exit code from the APIM CLI command'
+    value: ${{ steps.apim_cli.outputs.exit_code }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Modify command to use IP with hostname header
+      id: modify_command
+      shell: bash
+      run: |
+        echo "🔧 Original command: ${{ inputs.command }}"
+        
+        # Replace hostname with IP in the command
+        if [[ "${{ inputs.command }}" == *"-h"* ]]; then
+          modified_command=$(echo "${{ inputs.command }}" | sed "s/-h [^ ]*/-h ${{ inputs.apim_ip }}/g")
+          echo "🔧 Modified command to use IP: $modified_command"
+          echo "command=$modified_command" >> $GITHUB_OUTPUT
+        else
+          echo "command=${{ inputs.command }}" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Execute APIM CLI command
+      id: apim_cli
+      uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11
+      with:
+        command: ${{ steps.modify_command.outputs.command }}
+      env:
+        LOG_LEVEL: ${{ inputs.log_level }}
+        APIM_PORT: ${{ inputs.port }}
+        # Add hostname for Ingress Nginx routing
+        APIM_HOSTNAME: ${{ inputs.apim_hostname }}

@@ -99,9 +99,9 @@ jobs:
 
       - name: Check if API exists
         id: check_api
-        uses: ./.github/actions/apim-cli
+        uses: ./.github/actions/apim-cli-with-hostname
         with:
-          command: apim api get -h "${{ vars.APIM_INSTANCE_HOSTNAME || vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -a "${{ steps.api_info.outputs.api_path }}"
+          command: apim api get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -a "${{ steps.api_info.outputs.api_path }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
           apim_ip: ${{ vars.APIM_INSTANCE_IP }}
@@ -125,7 +125,7 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/apim-cli
         with:
-          command: apim api import -h "${{ vars.APIM_INSTANCE_HOSTNAME || vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}" -force
+          command: apim api import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}" -force
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
           apim_ip: ${{ vars.APIM_INSTANCE_IP }}
@@ -156,7 +156,7 @@ jobs:
         continue-on-error: true
         uses: ./.github/actions/apim-cli
         with:
-          command: apim api import -h "${{ vars.APIM_INSTANCE_HOSTNAME || vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}"
+          command: apim api import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
           apim_ip: ${{ vars.APIM_INSTANCE_IP }}

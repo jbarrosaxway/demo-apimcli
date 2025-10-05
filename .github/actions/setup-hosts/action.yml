@@ -12,7 +12,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Add host mapping
+    - name: Add host mapping to host
       shell: bash
       run: |
         echo "🔧 Adding host mapping: ${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}"
@@ -28,3 +28,11 @@ runs:
         else
           echo "⚠️ Host ${{ inputs.apim_hostname }} is not reachable, but mapping was added"
         fi
+        
+    - name: Set environment variables for Docker
+      shell: bash
+      run: |
+        echo "🔧 Setting environment variables for Docker container"
+        echo "APIM_HOST_IP=${{ inputs.apim_ip }}" >> $GITHUB_ENV
+        echo "APIM_HOST_HOSTNAME=${{ inputs.apim_hostname }}" >> $GITHUB_ENV
+        echo "✅ Environment variables set for Docker container"

@@ -27,13 +27,6 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup host mapping
-      if: inputs.apim_ip != ''
-      uses: ./.github/actions/setup-hosts
-      with:
-        apim_ip: ${{ inputs.apim_ip }}
-        apim_hostname: ${{ inputs.apim_hostname }}
-
     - name: Execute APIM CLI command
       id: apim_cli
       uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11
