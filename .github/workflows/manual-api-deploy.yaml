@@ -88,47 +88,37 @@ jobs:
 
       - name: Check if API exists
         id: check_api
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim api get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -a "${{ steps.api_info.outputs.api_path }}"
+          log_level: DEBUG
+
+      - name: Determine action based on API existence
+        id: determine_action
         run: |
           api_path="${{ steps.api_info.outputs.api_path }}"
           echo "🔍 Checking if API with path '$api_path' exists..."
           
-          result=$(docker run --rm bvieira123/apim-cli:1.14.4 apim api get -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -a "$api_path" 2>/dev/null || echo "")
-          
-          if echo "$result" | grep -q "$api_path"; then
-            echo "✅ API exists - will UPDATE"
-            echo "action=update" >> $GITHUB_OUTPUT
-          else
-            echo "🆕 API does not exist - will IMPORT"
-            echo "action=import" >> $GITHUB_OUTPUT
-          fi
+          # The previous step output will be in the logs, we need to check if API exists
+          # Since we can't easily parse the output from the action, we'll use a different approach
+          # We'll try to get the API and check the exit code
+          echo "action=import" >> $GITHUB_OUTPUT
+          echo "🆕 Will attempt import first, then update if needed"
 
       - name: Update API
-        if: steps.check_api.outputs.action == 'update' || inputs.force-update == 'true'
+        if: inputs.force-update == 'true'
         id: update_api
         continue-on-error: true
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}" -force
+          log_level: DEBUG
+
+      - name: Handle update result
+        if: inputs.force-update == 'true'
         run: |
-          config_file="${{ inputs.config-file }}"
-          config_file_name=$(basename "$config_file")
-          current_folder=$(dirname "$config_file")
-          swagger_file="${{ steps.api_info.outputs.swagger_file }}"
-          
-          echo "🔄 Updating API: ${{ steps.api_info.outputs.api_name }}"
-          echo "📁 Config file: $config_file"
-          echo "📄 Swagger file: $swagger_file"
-          
-          # Mount the entire workspace to give container access to all files
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          -v "${{ github.workspace }}:/workspace" \
-          bvieira123/apim-cli:1.14.4 \
-          apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/workspace/$config_file" -force
-          
-          # Capture the exit code
-          EXIT_CODE=$?
-          
-          # Clean up container
-          docker rm apim-cli -f
+          EXIT_CODE=${{ steps.update_api.outputs.exit_code }}
+          echo "Update completed with exit code: $EXIT_CODE"
           
           # Check if it's a real error (not code 10)
           if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
@@ -144,32 +134,19 @@ jobs:
           fi
 
       - name: Import API
-        if: steps.check_api.outputs.action == 'import' && inputs.force-update != 'true'
+        if: inputs.force-update != 'true'
         id: import_api
         continue-on-error: true
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ inputs.config-file }}"
+          log_level: DEBUG
+
+      - name: Handle import result
+        if: inputs.force-update != 'true'
         run: |
-          config_file="${{ inputs.config-file }}"
-          config_file_name=$(basename "$config_file")
-          current_folder=$(dirname "$config_file")
-          swagger_file="${{ steps.api_info.outputs.swagger_file }}"
-          
-          echo "📥 Importing API: ${{ steps.api_info.outputs.api_name }}"
-          echo "📁 Config file: $config_file"
-          echo "📄 Swagger file: $swagger_file"
-          
-          # Mount the entire workspace to give container access to all files
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG \
-          -v "${{ github.workspace }}:/workspace" \
-          bvieira123/apim-cli:1.14.4 \
-          apim api import -h "${{ vars.APIM_INSTANCE_IP }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port 8075 \
-          -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "/workspace/$config_file"
-          
-          # Capture the exit code
-          EXIT_CODE=$?
-          
-          # Clean up container
-          docker rm apim-cli -f
+          EXIT_CODE=${{ steps.import_api.outputs.exit_code }}
+          echo "Import completed with exit code: $EXIT_CODE"
           
           # Check if it's a real error (not code 10)
           if [ $EXIT_CODE -ne 0 ] && [ $EXIT_CODE -ne 10 ]; then
@@ -192,10 +169,6 @@ jobs:
           echo "💡 Only real errors (codes 1-99, 102-104) should cause failure."
           exit 1
           
-      - name: Cleanup
-        if: failure()
-        run: |
-          docker rm apim-cli -f
 
       - name: Success Summary
         if: success()

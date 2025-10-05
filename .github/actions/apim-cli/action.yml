@@ -1,0 +1,25 @@
+name: 'APIM CLI Action'
+description: 'Execute APIM CLI commands using the Axway APIM-CLI GitHub Action'
+inputs:
+  command:
+    description: 'APIM CLI command to execute'
+    required: true
+  log_level:
+    description: 'Log level for APIM CLI'
+    required: false
+    default: 'DEBUG'
+outputs:
+  exit_code:
+    description: 'Exit code from the APIM CLI command'
+    value: ${{ steps.apim_cli.outputs.exit_code }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Execute APIM CLI command
+      id: apim_cli
+      uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11
+      with:
+        command: ${{ inputs.command }}
+      env:
+        LOG_LEVEL: ${{ inputs.log_level }}

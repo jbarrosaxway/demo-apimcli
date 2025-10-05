@@ -33,7 +33,8 @@ jobs:
           wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
           chmod +x /usr/local/bin/yq
 
-      - name: import api definitions with intelligent error handling
+      - name: Extract API information
+        id: api_info
         run: |
           echo "Getting API definition..."
           echo "Processing ${{ inputs.config-file }} config file"
@@ -52,33 +53,28 @@ jobs:
           fi
           
           echo "API definition: $API_DEFINITION_FILE_NAME"
-          echo "Importing API with apim-cli using config file: ${{ inputs.config-file }}"
           echo "API path: $path"
           
-          # Get the full path to the API definition file
-          API_DEFINITION_FULL_PATH=$(yq -r '.apiSpecification.resource' ${{ inputs.config-file }} 2>/dev/null || jq -r '.apiSpecification.resource' ${{ inputs.config-file }})
-          API_DEFINITION_DIR=$(dirname "$API_DEFINITION_FULL_PATH")
-          
-          # Mount the entire workspace to give container access to all files
-          docker run --name apim-cli \
-          -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}:/workspace" bvieira123/apim-cli:1.14.4  \
-          apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 \
-          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/workspace/${{ inputs.config-file }}"
-          
-          # Capture the exit code
-          EXIT_CODE=$?
-          
-          # Clean up container
-          docker rm apim-cli -f
+          # Set outputs for next steps
+          echo "api_definition_file_name=$API_DEFINITION_FILE_NAME" >> $GITHUB_OUTPUT
+          echo "api_path=$path" >> $GITHUB_OUTPUT
+
+      - name: Import API using APIM CLI Action
+        id: import_api
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim api import -h ${{ vars.APIM_INSTANCE_IP }} -u ${{ vars.APIM_INSTANCE_USER }} -port 8075 -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c ${{ inputs.config-file }}
+          log_level: DEBUG
+
+      - name: Handle import result
+        run: |
+          EXIT_CODE=${{ steps.import_api.outputs.exit_code }}
+          echo "Import completed with exit code: $EXIT_CODE"
           
           # Use intelligent error handling
           source scripts/error-handler.sh
           handle_exit_code $EXIT_CODE "import"
           
           # Exit with the result from error handler
-          exit $?
+          exit $EXIT_CODE
           
-      - name: Cleanup
-        if: failure()
-        run: |
-          docker rm apim-cli -f 
