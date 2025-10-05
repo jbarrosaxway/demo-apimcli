@@ -19,8 +19,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: DEMO
     outputs:
-      org_exists: ${{ steps.check_org.outputs.exists }}
-      org_file: ${{ steps.check_org.outputs.org_file }}
+      org_exists: ${{ steps.process_org_check.outputs.exists }}
+      org_file: ${{ steps.process_org_check.outputs.org_file }}
       org_data: ${{ steps.read_org_config.outputs.org_data }}
       apps_to_create: ${{ steps.check_apps.outputs.apps_to_create }}
       api_name: ${{ steps.api_info.outputs.api_name }}
@@ -107,10 +107,10 @@ jobs:
           fi
 
       - name: Read Organization Config
-        if: steps.check_org.outputs.exists == 'false'
+        if: steps.process_org_check.outputs.exists == 'false'
         id: read_org_config
         run: |
-          org_file="${{ steps.check_org.outputs.org_file }}"
+          org_file="${{ steps.process_org_check.outputs.org_file }}"
           echo "📖 Reading organization config from: $org_file"
           
           # Extract organization info from JSON file
@@ -178,6 +178,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
+      - name: Debug Organization Creation
+        run: |
+          echo "🔍 Debug Organization Creation:"
+          echo "  org_exists: ${{ needs.check_dependencies.outputs.org_exists }}"
+          echo "  org_file: ${{ needs.check_dependencies.outputs.org_file }}"
+          echo "  org_created: ${{ needs.check_dependencies.outputs.org_created }}"
+          
       - name: Create Organization
         uses: ./.github/actions/apim-cli
         with:
