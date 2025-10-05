@@ -152,17 +152,11 @@ jobs:
               fi
             done <<< "$apps"
             
-            # Convert array to JSON manually
+            # Convert array to JSON using jq
             if [ ${#app_files[@]} -gt 0 ]; then
-              json_array="["
-              for i in "${!app_files[@]}"; do
-                if [ $i -gt 0 ]; then
-                  json_array="$json_array,"
-                fi
-                json_array="$json_array\"${app_files[$i]}\""
-              done
-              json_array="$json_array]"
-              apps_to_create="$json_array"
+              # Create a temporary file with the array
+              printf '%s\n' "${app_files[@]}" | jq -R . | jq -s . > /tmp/app_files.json
+              apps_to_create=$(cat /tmp/app_files.json)
             fi
           else
             echo "📱 No applications found in config file"
