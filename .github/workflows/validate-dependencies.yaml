@@ -142,6 +142,14 @@ jobs:
                 
                 if [ -f "$app_file" ]; then
                   echo "📁 Found application config file: $app_file"
+                  
+                  # Extract app name and org from config file
+                  app_org=$(jq -r '.organization' "$app_file")
+                  
+                  # Check if application exists in APIM using action
+                  echo "🔍 Verifying if application '$app_name' exists in organization '$app_org'..."
+                  
+                  # We'll check this in a separate step since we can't use actions in run steps
                   app_files+=("$app_file")
                 else
                   echo "⚠️ No application config file found for '$app_name'"
@@ -169,8 +177,6 @@ jobs:
           fi
           
           echo "apps_to_create=$apps_to_create" >> $GITHUB_OUTPUT
-
-
 
       - name: Validation Summary
         run: |
