@@ -152,10 +152,14 @@ jobs:
               fi
             done <<< "$apps"
             
-            # Convert array to JSON using jq
+            # Convert array to JSON manually (more reliable)
             if [ ${#app_files[@]} -gt 0 ]; then
-              # Convert bash array to JSON array (compact, no pretty print)
-              apps_to_create=$(printf '%s\n' "${app_files[@]}" | jq -R . | jq -s . | jq -c .)
+              # Build JSON array manually
+              json_parts=()
+              for app_file in "${app_files[@]}"; do
+                json_parts+=("\"$app_file\"")
+              done
+              apps_to_create="[$(IFS=,; echo "${json_parts[*]}")]"
               echo "🔍 Debug: Generated JSON: '$apps_to_create'"
             fi
           else
