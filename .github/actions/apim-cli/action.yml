@@ -27,26 +27,28 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - name: Setup host mapping
-      if: inputs.apim_ip != ''
+    - name: Modify command to use IP with hostname header
+      id: modify_command
       shell: bash
       run: |
-        echo "🔧 Adding host mapping: ${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}"
-        echo "${{ inputs.apim_ip }} ${{ inputs.apim_hostname }}" | sudo tee -a /etc/hosts
-        echo "✅ Host mapping added successfully"
+        echo "🔧 Original command: ${{ inputs.command }}"
         
-        echo "🔍 Verifying host resolution..."
-        if ping -c 1 ${{ inputs.apim_hostname }} > /dev/null 2>&1; then
-          echo "✅ Host ${{ inputs.apim_hostname }} is reachable"
+        # Replace hostname with IP in the command but keep hostname for header
+        if [[ "${{ inputs.command }}" == *"-h"* ]] && [[ "${{ inputs.apim_ip }}" != "" ]]; then
+          modified_command=$(echo "${{ inputs.command }}" | sed "s/-h [^ ]*/-h ${{ inputs.apim_ip }}/g")
+          echo "🔧 Modified command to use IP: $modified_command"
+          echo "command=$modified_command" >> $GITHUB_OUTPUT
         else
-          echo "⚠️ Host ${{ inputs.apim_hostname }} is not reachable, but mapping was added"
+          echo "command=${{ inputs.command }}" >> $GITHUB_OUTPUT
         fi
 
     - name: Execute APIM CLI command
       id: apim_cli
       uses: Axway-API-Management-Plus/apim-cli-github-action@v1.14.11
       with:
-        command: ${{ inputs.command }}
+        command: ${{ steps.modify_command.outputs.command }}
       env:
         LOG_LEVEL: ${{ inputs.log_level }}
         APIM_PORT: ${{ inputs.port }}
+        # Add hostname for Ingress Nginx routing
+        APIM_HOSTNAME: ${{ inputs.apim_hostname }}
