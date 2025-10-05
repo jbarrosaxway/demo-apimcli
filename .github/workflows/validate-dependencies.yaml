@@ -222,36 +222,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         
-      - name: Extract Application Info
+      - name: Import Application
         id: app_info
         run: |
           app_file="${{ matrix.app_file }}"
-          echo "📱 Creating application from: $app_file"
+          echo "📱 Importing application from: $app_file"
           
-          # Extract application info from config file
+          # Extract application name for logging
           app_name=$(jq -r '.name' "$app_file")
           app_org=$(jq -r '.organization' "$app_file")
-          app_description=$(jq -r '.description' "$app_file")
-          app_state=$(jq -r '.state' "$app_file")
-          app_enabled=$(jq -r '.enabled' "$app_file")
-          app_phone=$(jq -r '.phone' "$app_file")
-          app_email=$(jq -r '.email' "$app_file")
           
-          echo "Creating application: $app_name in organization: $app_org"
+          echo "Importing application: $app_name in organization: $app_org"
           
           # Set outputs for next step
           echo "app_name=$app_name" >> $GITHUB_OUTPUT
           echo "app_org=$app_org" >> $GITHUB_OUTPUT
-          echo "app_description=$app_description" >> $GITHUB_OUTPUT
-          echo "app_state=$app_state" >> $GITHUB_OUTPUT
-          echo "app_enabled=$app_enabled" >> $GITHUB_OUTPUT
-          echo "app_phone=$app_phone" >> $GITHUB_OUTPUT
-          echo "app_email=$app_email" >> $GITHUB_OUTPUT
         
       - name: Create Application
         uses: ./.github/actions/apim-cli
         with:
-          command: apim app create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ steps.app_info.outputs.app_name }}" --org "${{ steps.app_info.outputs.app_org }}" --description "${{ steps.app_info.outputs.app_description }}" --state "${{ steps.app_info.outputs.app_state }}" --enabled "${{ steps.app_info.outputs.app_enabled }}" --phone "${{ steps.app_info.outputs.app_phone }}" --email "${{ steps.app_info.outputs.app_email }}"
+          command: apim app import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -c "${{ matrix.app_file }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
         
