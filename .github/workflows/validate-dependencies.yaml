@@ -154,9 +154,8 @@ jobs:
             
             # Convert array to JSON using jq
             if [ ${#app_files[@]} -gt 0 ]; then
-              # Create a temporary file with the array
-              printf '%s\n' "${app_files[@]}" | jq -R . | jq -s . > /tmp/app_files.json
-              apps_to_create=$(cat /tmp/app_files.json)
+              # Convert bash array to JSON array
+              apps_to_create=$(printf '%s\n' "${app_files[@]}" | jq -R . | jq -s .)
             fi
           else
             echo "📱 No applications found in config file"
