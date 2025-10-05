@@ -17,17 +17,25 @@ jobs:
           mkdir -p exported-apis
 
       - name: Export APIs from Axway API Manager
+        id: export_apis
+        uses: ./.github/actions/apim-cli
+        with:
+          command: apim api get -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" -o yaml -t exported-apis
+          log_level: DEBUG
+          port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
+      
+      - name: Handle export result
         run: |
-          echo "Exporting APIs from Axway API Manager..."
-          docker run --rm \
-          -v "${{ github.workspace }}/exported-apis:/opt/apim-cli" \
-          bvieira123/apim-cli:1.14.4 \
-          apim api get \
-          -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }} \
-          -u ${{ vars.APIM_INSTANCE_USER }} \
-          -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
-          -p ${{ secrets.APIM_INSTANCE_PASSWORD }} \
-          -o yaml
+          EXIT_CODE=${{ steps.export_apis.outputs.exit_code }}
+          echo "Export completed with exit code: $EXIT_CODE"
+          
+          # Use intelligent error handling
+          source scripts/error-handler.sh
+          handle_exit_code $EXIT_CODE "export"
+          
+          # Exit with the result from error handler
+          HANDLER_RESULT=$?
+          exit $HANDLER_RESULT
 
       - name: List exported files
         run: |
