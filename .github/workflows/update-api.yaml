@@ -153,7 +153,7 @@ jobs:
             echo "Updating API with apim-cli using config file: $file"
             
             # Use the APIM CLI Action for updating
-            echo "Command: apim api import -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }} -u ${{ vars.APIM_INSTANCE_USER }} -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c $file -force"
+            echo "Command: apim api import -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }} -u ${{ vars.APIM_INSTANCE_USER }} -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c $file -force"
             
             # For now, we'll just log the command since we can't use the action in a loop
             echo "Note: API update command would be executed here"

@@ -18,7 +18,7 @@ inputs:
   apim_hostname:
     description: 'APIM instance hostname'
     required: false
-    default: 'apimgr.lab.demo-latam.axway.com'
+    default: 'apimgr.20.253.88.45.nip.io'
 outputs:
   exit_code:
     description: 'Exit code from the APIM CLI command'

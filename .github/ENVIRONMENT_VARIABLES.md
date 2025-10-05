@@ -8,7 +8,7 @@ Este projeto usa variáveis de ambiente do GitHub Actions para configurar a cone
 Configure estas variáveis nas configurações do repositório GitHub:
 
 - `APIM_INSTANCE_IP`: IP da instância do APIM (obrigatório)
-- `APIM_INSTANCE_HOSTNAME`: Hostname da instância do APIM (opcional, padrão: apimgr.lab.demo-latam.axway.com)
+- `APIM_INSTANCE_HOSTNAME`: Hostname da instância do APIM (opcional, padrão: apimgr.20.253.88.45.nip.io)
 - `APIM_INSTANCE_USER`: Usuário para autenticação no APIM
 - `APIM_INSTANCE_PORT`: Porta da instância do APIM (opcional, padrão: 8075)
 
@@ -36,7 +36,7 @@ Se a variável `APIM_INSTANCE_PORT` não for definida, o sistema usará a porta 
 
 ```
 APIM_INSTANCE_IP: 20.253.88.45
-APIM_INSTANCE_HOSTNAME: apimgr.lab.demo-latam.axway.com
+APIM_INSTANCE_HOSTNAME: apimgr.20.253.88.45.nip.io
 APIM_INSTANCE_USER: apiadmin
 APIM_INSTANCE_PORT: 8075
 APIM_INSTANCE_PASSWORD: [sua_senha]
@@ -44,7 +44,7 @@ APIM_INSTANCE_PASSWORD: [sua_senha]
 
 ## Resolução de Hostname
 
-O sistema automaticamente adiciona o mapeamento de hostname no arquivo `/etc/hosts` do runner do GitHub Actions para resolver o hostname `apimgr.lab.demo-latam.axway.com` para o IP `20.253.88.45`. Isso resolve o erro `UnknownHostException` que pode ocorrer quando o hostname não é resolvido pelo DNS.
+O sistema automaticamente adiciona o mapeamento de hostname no arquivo `/etc/hosts` do runner do GitHub Actions para resolver o hostname `apimgr.20.253.88.45.nip.io` para o IP `20.253.88.45`. Isso resolve o erro `UnknownHostException` que pode ocorrer quando o hostname não é resolvido pelo DNS.
 
 ## Ambientes
 

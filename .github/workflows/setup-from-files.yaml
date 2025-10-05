@@ -108,11 +108,11 @@ jobs:
       - name: Create Organization
         uses: ./.github/actions/apim-cli
         with:
-          command: apim org create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_org_config.outputs.org-name }}" --description "${{ needs.read_org_config.outputs.org-description }}" --email "${{ needs.read_org_config.outputs.org-email }}" --phone "${{ needs.read_org_config.outputs.org-phone }}" --enabled "${{ needs.read_org_config.outputs.org-enabled }}" --development "${{ needs.read_org_config.outputs.org-development }}"
+          command: apim org create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_org_config.outputs.org-name }}" --description "${{ needs.read_org_config.outputs.org-description }}" --email "${{ needs.read_org_config.outputs.org-email }}" --phone "${{ needs.read_org_config.outputs.org-phone }}" --enabled "${{ needs.read_org_config.outputs.org-enabled }}" --development "${{ needs.read_org_config.outputs.org-development }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
           apim_ip: ${{ vars.APIM_INSTANCE_IP }}
-          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}
+          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}
 
       - name: Organization Creation Result
         run: |
@@ -133,11 +133,11 @@ jobs:
       - name: Create Application
         uses: ./.github/actions/apim-cli
         with:
-          command: apim app create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_app_config.outputs.app-name }}" --org "${{ steps.org_name.outputs.org-name }}" --description "${{ needs.read_app_config.outputs.app-description }}" --state "${{ needs.read_app_config.outputs.app-state }}" --enabled "${{ needs.read_app_config.outputs.app-enabled }}" --phone "${{ needs.read_app_config.outputs.app-phone }}" --email "${{ needs.read_app_config.outputs.app-email }}"
+          command: apim app create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" --name "${{ needs.read_app_config.outputs.app-name }}" --org "${{ steps.org_name.outputs.org-name }}" --description "${{ needs.read_app_config.outputs.app-description }}" --state "${{ needs.read_app_config.outputs.app-state }}" --enabled "${{ needs.read_app_config.outputs.app-enabled }}" --phone "${{ needs.read_app_config.outputs.app-phone }}" --email "${{ needs.read_app_config.outputs.app-email }}"
           log_level: DEBUG
           port: ${{ vars.APIM_INSTANCE_PORT || '8075' }}
           apim_ip: ${{ vars.APIM_INSTANCE_IP }}
-          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}
+          apim_hostname: ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}
 
       - name: Application Creation Result
         run: |

@@ -89,7 +89,7 @@ jobs:
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
           bvieira123/apim-cli:1.14.4 \
-          apim org create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
+          apim org create -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
           --name "${{ inputs.org-name }}" \
           --description "${{ inputs.org-description }}" \
@@ -122,7 +122,7 @@ jobs:
           -e LOG_LEVEL=DEBUG \
           -v /tmp/org-update.json:/org-update.json \
           bvieira123/apim-cli:1.14.4 \
-          apim org import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
+          apim org import -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
           -c "/org-update.json"
           
@@ -138,7 +138,7 @@ jobs:
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG \
           bvieira123/apim-cli:1.14.4 \
-          apim org delete -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
+          apim org delete -h "${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }}" -u "${{ vars.APIM_INSTANCE_USER }}" -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p "${{ secrets.APIM_INSTANCE_PASSWORD }}" \
           --name "${{ inputs.org-name }}" \
           --force

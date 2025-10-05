@@ -60,7 +60,7 @@ jobs:
           # Mount the entire workspace to give container access to all files
           docker run --name apim-cli \
           -e LOG_LEVEL=DEBUG -v "${{ github.workspace }}:/workspace" bvieira123/apim-cli:1.14.4  \
-          apim api import -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.lab.demo-latam.axway.com' }} -u ${{ vars.APIM_INSTANCE_USER }} -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
+          apim api import -h ${{ vars.APIM_INSTANCE_HOSTNAME || 'apimgr.20.253.88.45.nip.io' }} -u ${{ vars.APIM_INSTANCE_USER }} -port ${{ vars.APIM_INSTANCE_PORT || '8075' }} \
           -p ${{ secrets.APIM_INSTANCE_PASSWORD }} -c "/workspace/${{ inputs.config-file }}"
           
           # Capture the exit code
