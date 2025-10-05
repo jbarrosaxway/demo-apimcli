@@ -15,7 +15,7 @@ inputs:
 outputs:
   exit_code:
     description: 'Exit code from the APIM CLI command'
-    value: ${{ steps.apim_cli.outputs.exit_code }}
+    value: ${{ steps.capture_exit_code.outputs.exit_code }}
 
 runs:
   using: 'composite'
@@ -28,3 +28,9 @@ runs:
       env:
         LOG_LEVEL: ${{ inputs.log_level }}
         APIM_PORT: ${{ inputs.port }}
+    
+    - name: Capture exit code
+      id: capture_exit_code
+      run: |
+        # Capture the exit code from the previous step
+        echo "exit_code=${{ steps.apim_cli.outcome == 'success' && '0' || '1' }}" >> $GITHUB_OUTPUT
