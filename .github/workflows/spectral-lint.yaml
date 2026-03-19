@@ -24,7 +24,7 @@ jobs:
         with:
           repository: ${{ vars.BUILD_CONFIG_REPO || 'jbarrosaxway/apim-build-config' }}
           path: build-config
-          token: ${{ secrets.BUILD_CONFIG_ACCESS_TOKEN }}
+          token: ${{ secrets.BUILD_CONFIG_ACCESS_TOKEN || github.token }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
