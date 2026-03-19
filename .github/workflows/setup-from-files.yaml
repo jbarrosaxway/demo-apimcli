@@ -35,7 +35,7 @@ jobs:
       org-development: ${{ steps.org_info.outputs.development }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Read Organization Config
         id: org_info
@@ -73,7 +73,7 @@ jobs:
       app-email: ${{ steps.app_info.outputs.email }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       
       - name: Read Application Config
         id: app_info

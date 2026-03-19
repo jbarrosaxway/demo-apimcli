@@ -15,19 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Checkout build config (repositório de dependências)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ vars.BUILD_CONFIG_REPO || 'jbarrosaxway/apim-build-config' }}
           path: build-config
           token: ${{ secrets.BUILD_CONFIG_ACCESS_TOKEN || github.token }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
-          node-version: '20'
+          node-version: '24'
+          package-manager-cache: false
 
       - name: Install Spectral (repositório build-config)
         run: npm ci --prefix build-config || npm install --prefix build-config
@@ -42,7 +43,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Spectral report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: spectral-report
           path: |

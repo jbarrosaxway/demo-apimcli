@@ -28,7 +28,7 @@ jobs:
       apps_created: ${{ steps.check_apps.outputs.apps_to_create != '' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install yq
         run: |
@@ -247,7 +247,7 @@ jobs:
     environment: DEMO
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: Debug Organization Creation
         run: |
@@ -277,7 +277,7 @@ jobs:
         app_file: ${{ fromJson(needs.check_dependencies.outputs.apps_to_create_filtered) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         
       - name: Import Application
         id: app_info
