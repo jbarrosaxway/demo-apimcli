@@ -106,11 +106,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Install Spectral (repositório build-config)
+        run: npm ci --prefix build-config || npm install --prefix build-config
 
       - name: Run Spectral and generate report
-        run: node scripts/spectral-report.js
+        env:
+          SPECTRAL_WORKSPACE: ${{ github.workspace }}
+        run: node build-config/scripts/spectral-report.js
         continue-on-error: true
 
       - name: Upload Spectral report

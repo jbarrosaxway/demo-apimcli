@@ -227,11 +227,17 @@ O projeto inclui análise de especificações OpenAPI/AsyncAPI com [Spectral](ht
 
 1. **No repositório**: em Actions → **Spectral API Lint** → Run workflow (ou aguardar o schedule).
 2. **Após export**: executar **export-apis**; ao concluir, o artifact **spectral-report-exported** terá o relatório das APIs exportadas.
-3. **Local**: `npm install` e depois `npm run spectral:report` (usa `examples/OAS/*` e, se existir, `exported-apis/*/api-specification.yaml`).
+3. **Local**: clone o repositório de build config em `build-config/`, instale dependências lá e execute o script com o workspace do projeto:
+   ```bash
+   git clone https://github.com/jbarrosaxway/apim-build-config.git build-config
+   npm install --prefix build-config
+   SPECTRAL_WORKSPACE=$(pwd) node build-config/scripts/spectral-report.js
+   ```
+   (usa `examples/OAS/*` e, se existir, `exported-apis/<nome>/api-specification.yaml` dentro de `SPECTRAL_WORKSPACE`).
 
 ### Regras e repositório de build
 
-As regras Spectral ficam em um **repositório interno de configurações de build** (não exposto ao usuário final), clonado como dependência nos workflows. O ruleset é usado via `--ruleset build-config/.spectral.yaml` (OAS + AsyncAPI + regras customizadas: info description, servers, operationId, respostas 2xx/4xx/5xx, security, formato de título e versão).
+As regras Spectral e o **script de relatório** (`scripts/spectral-report.js`) ficam no repositório de configurações de build (**apim-build-config**), clonado como `build-config/` nos workflows. O ruleset e o `npm install` de dependências Spectral vêm desse repositório (OAS + AsyncAPI + regras customizadas: info description, servers, operationId, respostas 2xx/4xx/5xx, security, formato de título e versão).
 
 **Secrets necessários para o Spectral nos Actions:**
 - `BUILD_CONFIG_ACCESS_TOKEN`: token (PAT) com permissão `repo` para o repositório de build config (ex.: `jbarrosaxway/apim-build-config`). Sem este secret, o checkout do repositório de config falha.

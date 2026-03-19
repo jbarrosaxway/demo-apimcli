@@ -8,8 +8,6 @@ on:
     branches: [main, master]
     paths:
       - 'examples/OAS/**'
-      - 'scripts/spectral-report.js'
-      - 'package.json'
       - '.github/workflows/spectral-lint.yaml'
 
 jobs:
@@ -31,13 +29,15 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install dependencies
-        run: npm ci || npm install
+      - name: Install Spectral (repositório build-config)
+        run: npm ci --prefix build-config || npm install --prefix build-config
 
       - name: Run Spectral and generate report
         id: spectral
+        env:
+          SPECTRAL_WORKSPACE: ${{ github.workspace }}
         run: |
-          node scripts/spectral-report.js
+          node build-config/scripts/spectral-report.js
           echo "exit_code=$?" >> $GITHUB_OUTPUT
         continue-on-error: true
 
