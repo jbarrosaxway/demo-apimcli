@@ -53,7 +53,7 @@ jobs:
           done
 
       - name: Upload exported APIs as artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: exported-apis
           path: exported-apis/
@@ -74,7 +74,7 @@ jobs:
           echo "Total APIs exported: $(find exported-apis -maxdepth 1 -type d | wc -l)" >> export-summary.md
 
       - name: Upload summary report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: export-summary
           path: export-summary.md
@@ -96,7 +96,7 @@ jobs:
           token: ${{ secrets.BUILD_CONFIG_ACCESS_TOKEN || github.token }}
 
       - name: Download exported APIs
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: exported-apis
           path: exported-apis
@@ -117,7 +117,7 @@ jobs:
         continue-on-error: true
 
       - name: Upload Spectral report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: spectral-report-exported
           path: |
