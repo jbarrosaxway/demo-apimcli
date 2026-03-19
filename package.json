@@ -1,0 +1,14 @@
+{
+  "name": "demo-apimcli",
+  "version": "1.0.0",
+  "description": "Axway API Manager CLI demo with Spectral API linting",
+  "private": true,
+  "scripts": {
+    "spectral:report": "node scripts/spectral-report.js",
+    "spectral:lint": "spectral lint"
+  },
+  "devDependencies": {
+    "@stoplight/spectral-cli": "^6.15.0",
+    "@stoplight/spectral-owasp-ruleset": "^2.0.1"
+  }
+}

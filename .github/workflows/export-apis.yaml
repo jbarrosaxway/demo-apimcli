@@ -78,4 +78,41 @@ jobs:
         with:
           name: export-summary
           path: export-summary.md
-          retention-days: 30 
+          retention-days: 30
+
+  spectral_report:
+    name: Spectral report (APIs exportadas)
+    needs: export_apis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download exported APIs
+        uses: actions/download-artifact@v4
+        with:
+          name: exported-apis
+          path: exported-apis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run Spectral and generate report
+        run: node scripts/spectral-report.js
+        continue-on-error: true
+
+      - name: Upload Spectral report
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectral-report-exported
+          path: |
+            spectral-report.md
+            spectral-lint-results.json
+          retention-days: 30
+          if-no-files-found: ignore

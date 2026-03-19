@@ -209,4 +209,26 @@ O workflow GitHub Actions pode ser integrado com:
 - **Backup automático**: Exportação diária das APIs
 - **Versionamento**: Commit automático dos arquivos exportados
 - **Notificações**: Slack/Email quando novas APIs são detectadas
-- **Análise**: Comparação entre versões para detectar mudanças 
+- **Análise**: Comparação entre versões para detectar mudanças
+
+## Análise Spectral (maturidade API)
+
+O projeto inclui análise de especificações OpenAPI/AsyncAPI com [Spectral](https://stoplight.io/open-source/spectral), alinhada às boas práticas (incl. Amplify Engage), com geração de relatório de maturidade.
+
+### O que é executado
+
+- **Workflow `spectral-lint.yaml`**: roda manualmente, por agendamento ou em push em `examples/OAS` e gera:
+  - `spectral-report.md`: relatório com nota (A–F), score (Segurança/Design) e tabela de problemas
+  - `spectral-lint-results.json`: resultados em JSON (artifacts por 30 dias)
+
+- **Após o export**: o job `spectral_report` no workflow `export-apis` analisa as APIs exportadas e publica o relatório no artifact `spectral-report-exported`.
+
+### Como usar
+
+1. **No repositório**: em Actions → **Spectral API Lint** → Run workflow (ou aguardar o schedule).
+2. **Após export**: executar **export-apis**; ao concluir, o artifact **spectral-report-exported** terá o relatório das APIs exportadas.
+3. **Local**: `npm install` e depois `npm run spectral:report` (usa `examples/OAS/*` e, se existir, `exported-apis/*/api-specification.yaml`).
+
+### Regras
+
+As regras estão em `.spectral.yaml` (OAS + AsyncAPI + regras customizadas: info description, servers, operationId, respostas 2xx/4xx/5xx, security, formato de título e versão).

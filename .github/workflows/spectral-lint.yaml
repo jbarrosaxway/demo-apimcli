@@ -1,0 +1,56 @@
+name: Spectral API Lint
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 14 * * 1-5'   # Dias úteis, 11:00 BRT (14:00 UTC)
+  push:
+    branches: [main, master]
+    paths:
+      - 'examples/OAS/**'
+      - '.spectral.yaml'
+      - '.spectral.yml'
+      - 'scripts/spectral-report.js'
+      - 'package.json'
+      - '.github/workflows/spectral-lint.yaml'
+
+jobs:
+  spectral:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci || npm install
+
+      - name: Run Spectral and generate report
+        id: spectral
+        run: |
+          node scripts/spectral-report.js
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload Spectral report
+        uses: actions/upload-artifact@v4
+        with:
+          name: spectral-report
+          path: |
+            spectral-report.md
+            spectral-lint-results.json
+          retention-days: 30
+
+      - name: Summary
+        run: |
+          echo "## Spectral API Lint" >> $GITHUB_STEP_SUMMARY
+          if [ -f spectral-report.md ]; then
+            head -30 spectral-report.md >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Nenhum relatório gerado (nenhuma especificação encontrada)." >> $GITHUB_STEP_SUMMARY
+          fi
