@@ -229,6 +229,12 @@ O projeto inclui análise de especificações OpenAPI/AsyncAPI com [Spectral](ht
 2. **Após export**: executar **export-apis**; ao concluir, o artifact **spectral-report-exported** terá o relatório das APIs exportadas.
 3. **Local**: `npm install` e depois `npm run spectral:report` (usa `examples/OAS/*` e, se existir, `exported-apis/*/api-specification.yaml`).
 
-### Regras
+### Regras e repositório de build
 
-As regras estão em `.spectral.yaml` (OAS + AsyncAPI + regras customizadas: info description, servers, operationId, respostas 2xx/4xx/5xx, security, formato de título e versão).
+As regras Spectral ficam em um **repositório interno de configurações de build** (não exposto ao usuário final), clonado como dependência nos workflows. O ruleset é usado via `--ruleset build-config/.spectral.yaml` (OAS + AsyncAPI + regras customizadas: info description, servers, operationId, respostas 2xx/4xx/5xx, security, formato de título e versão).
+
+**Secrets necessários para o Spectral nos Actions:**
+- `BUILD_CONFIG_ACCESS_TOKEN`: token (PAT) com permissão `repo` para o repositório de build config (ex.: `jbarrosaxway/apim-build-config`). Sem este secret, o checkout do repositório de config falha.
+
+**Variável opcional:**
+- `BUILD_CONFIG_REPO`: repositório de config (padrão: `jbarrosaxway/apim-build-config`).

@@ -8,8 +8,6 @@ on:
     branches: [main, master]
     paths:
       - 'examples/OAS/**'
-      - '.spectral.yaml'
-      - '.spectral.yml'
       - 'scripts/spectral-report.js'
       - 'package.json'
       - '.github/workflows/spectral-lint.yaml'
@@ -20,6 +18,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Checkout build config (repositório de dependências)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.BUILD_CONFIG_REPO || 'jbarrosaxway/apim-build-config' }}
+          path: build-config
+          token: ${{ secrets.BUILD_CONFIG_ACCESS_TOKEN }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

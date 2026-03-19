@@ -156,8 +156,17 @@ function main() {
     return;
   }
 
-  const ruleset = fs.existsSync('.spectral.yaml') ? '.spectral.yaml' : '.spectral.yml';
-  const cmd = `npx spectral lint ${specFiles.map((f) => `"${f}"`).join(' ')} --ruleset "${ruleset}" -f json`;
+  const rulesetPath =
+    process.env.SPECTRAL_RULESET ||
+    (fs.existsSync('build-config/.spectral.yaml') ? 'build-config/.spectral.yaml' : null) ||
+    (fs.existsSync('build-config/.spectral.yml') ? 'build-config/.spectral.yml' : null) ||
+    (fs.existsSync('.spectral.yaml') ? '.spectral.yaml' : null) ||
+    (fs.existsSync('.spectral.yml') ? '.spectral.yml' : null);
+  if (!rulesetPath || !fs.existsSync(rulesetPath)) {
+    console.error('Nenhum ruleset Spectral encontrado. Defina SPECTRAL_RULESET ou faça checkout do repositório de build-config.');
+    process.exit(1);
+  }
+  const cmd = `npx spectral lint ${specFiles.map((f) => `"${f}"`).join(' ')} --ruleset "${rulesetPath}" -f json`;
   let results = [];
   let exitCode = 0;
 

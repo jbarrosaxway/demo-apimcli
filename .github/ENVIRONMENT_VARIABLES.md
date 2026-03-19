@@ -15,6 +15,7 @@ Configure estas variáveis nas configurações do repositório GitHub:
 Configure estes secrets nas configurações do repositório GitHub:
 
 - `APIM_INSTANCE_PASSWORD`: Senha do usuário do APIM
+- `BUILD_CONFIG_ACCESS_TOKEN`: (Obrigatório para Spectral) PAT com permissão `repo` para clonar o repositório privado de configurações de build (ex.: `jbarrosaxway/apim-build-config`), usado pelos workflows de lint Spectral.
 
 ## Como Configurar
 

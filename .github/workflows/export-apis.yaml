@@ -88,6 +88,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout build config (repositório de dependências)
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.BUILD_CONFIG_REPO || 'jbarrosaxway/apim-build-config' }}
+          path: build-config
+          token: ${{ secrets.BUILD_CONFIG_ACCESS_TOKEN }}
+
       - name: Download exported APIs
         uses: actions/download-artifact@v4
         with:
