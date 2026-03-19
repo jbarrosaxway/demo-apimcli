@@ -3,7 +3,7 @@
  * Gera relatório de maturidade API com Spectral (alinhado Amplify Engage).
  * Uso: node scripts/spectral-report.js [spec1.yaml spec2.json ...]
  *      ou SPECTRAL_SPECS="specs/*.yaml" node scripts/spectral-report.js
- * Se nenhum arquivo for passado, usa exemplos: examples/OAS/*.json e exported-apis/*/api-specification.yaml
+ * Se nenhum arquivo for passado, usa examples/OAS/*.json e exported-apis/<nome>/api-specification.yaml
  */
 
 const { execSync } = require('child_process');
